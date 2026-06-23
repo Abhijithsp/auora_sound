@@ -1,12 +1,12 @@
-# Flutter Music Player
+# Aura Sound
 
-A sleek, premium, and feature-rich local music player application built with Flutter, designed exclusively for iOS and Android. It scans, indexes, and plays local audio files with a modern UI and full background playback controls.
+A sleek, premium, and feature-rich local music player application built with Flutter, designed exclusively for iOS and Android. It scans, indexes, and plays local audio files with a modern UI, dynamic app icon switcher, and full background playback controls.
 
 ---
 
 ## 📱 About the App
 
-**Flutter Music** is a high-performance local music playback application. The app leverages native capabilities to query local files and delivers an immersive listening experience. Using a robust state management pattern and native media controls, it allows users to enjoy their local music libraries seamlessly.
+**Aura Sound** is a high-performance local music playback application. The app leverages native capabilities to query local files and delivers an immersive listening experience. Using a robust state management pattern and native media controls, it allows users to enjoy their local music libraries seamlessly.
 
 ---
 
@@ -17,6 +17,17 @@ A sleek, premium, and feature-rich local music player application built with Flu
 - **Background Controls:** Fully integrated with `audio_service` to provide lock screen media controls, notifications, and headset event handlers.
 - **Advanced Player Controls:** Play, pause, skip forward/backward, seek, shuffle, and repeat modes.
 - **Native Volume Control:** Controls native system volume and listens to volume changes using `flutter_volume_controller`.
+
+### 🎨 Premium Customization
+- **Dynamic App Icons:** Switch the home screen app icon directly from the settings page! Choose between 6 minimal and modern icons:
+  - **Aura Default**: Premium aura glowing circle with waveform logo.
+  - **Aura Dark**: Sleek dark theme with glowing cyan accents.
+  - **Aura Light**: Elegant clean white background with black soundwave circle.
+  - **Aura Neon**: Vibrant neon purple, pink, and orange gradient.
+  - **Aura Retro**: Vintage vinyl record deck design.
+  - **Aura Mono**: High-contrast black and white musical note outline.
+- **Accent Theme Colors:** Choose from signature accent colors (Lavender, Fluid Blue, Aura Pink, Emerald, Amber) to customize the application theme.
+- **Theme Mode Selector:** Smooth switching between Light Mode, Dark Mode, and System Default theme.
 
 ### 🗃️ Music Library & Navigation
 - **Local Scan:** Auto-scans local storage for media files (`on_audio_query`) and parses metadata like title, artist, album, and artwork.
@@ -32,7 +43,7 @@ A sleek, premium, and feature-rich local music player application built with Flu
 ### ⚙️ UX & System Details
 - **Material 3 Design:** A modern, clean, and responsive user interface.
 - **Permission Handler:** Streamlined permission request flows for storage access.
-- **Persistent State:** Preferences, favorites, and history are saved locally.
+- **Persistent State:** Preferences, favorites, history, and selected app icon are saved locally.
 
 ---
 
@@ -41,6 +52,7 @@ A sleek, premium, and feature-rich local music player application built with Flu
 - **Framework:** [Flutter](https://flutter.dev) (targeted to Android & iOS)
 - **State Management:** [Flutter BLoC](https://pub.dev/packages/flutter_bloc) / Cubit for predictable, testable state handling.
 - **Service Locator:** [GetIt](https://pub.dev/packages/get_it) for dependency injection.
+- **Dynamic Launcher Icons:** [flutter_dynamic_icon_plus](https://pub.dev/packages/flutter_dynamic_icon_plus) (compatible with AGP 9 and modern Gradle)
 - **Audio Stack:**
   - `just_audio` (Playback)
   - `audio_service` (System integration)
@@ -74,3 +86,5 @@ A sleek, premium, and feature-rich local music player application built with Flu
 flutter build apk --release
 flutter build appbundle --release
 ```
+> [!NOTE]
+> Since dynamic app icon switching uses Android `<activity-alias>`, you must do a `flutter clean` before compiling a release build if alternate icon configs are modified.

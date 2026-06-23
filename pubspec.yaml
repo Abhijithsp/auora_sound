@@ -44,7 +44,7 @@ dependencies:
   on_audio_query: ^2.9.0
   shared_preferences: ^2.5.5
   flutter_volume_controller: ^2.0.1
-  flutter_dynamic_icon: ^2.1.0
+  flutter_dynamic_icon_plus: ^1.4.1
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_dynamic_icon/flutter_dynamic_icon.dart';
+import 'package:flutter_dynamic_icon_plus/flutter_dynamic_icon_plus.dart';
 import 'settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {
@@ -79,10 +79,10 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> updateAppIcon(String iconKey) async {
     await _prefs.setString('appIcon', iconKey);
     try {
-      if (await FlutterDynamicIcon.supportsAlternateIcons) {
+      if (await FlutterDynamicIconPlus.supportsAlternateIcons) {
         // 'Default' is represented by null to revert to the primary icon
         final String? alternateIconName = iconKey == 'Default' ? null : iconKey;
-        await FlutterDynamicIcon.setAlternateIconName(alternateIconName);
+        await FlutterDynamicIconPlus.setAlternateIconName(iconName: alternateIconName);
       }
     } catch (e) {
       debugPrint("Failed to set alternate icon: $e");

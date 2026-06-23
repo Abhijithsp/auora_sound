@@ -128,6 +128,11 @@
             </intent-filter>
         </receiver>
 
+        <!-- REQUIRED by flutter_dynamic_icon_plus for dynamic app icon switching -->
+        <service 
+            android:name="com.solusibejo.flutter_dynamic_icon_plus.FlutterDynamicIconPlusService" 
+            android:stopWithTask="false"/>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
