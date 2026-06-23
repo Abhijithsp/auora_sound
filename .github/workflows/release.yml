@@ -55,7 +55,18 @@ jobs:
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/release.jks
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 secret is empty or not set in GitHub repository settings!"
+            exit 1
+          fi
+          # Strip spaces, carriage returns, and newlines before decoding to avoid corruption
+          echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n[:space:]' | base64 --decode > android/app/release.jks
+          if [ ! -s android/app/release.jks ]; then
+            echo "::error::Decoded keystore file is empty or corrupted!"
+            exit 1
+          fi
+          echo "Keystore successfully decoded and validated."
+
 
       - name: Create key.properties
         env:
