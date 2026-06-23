@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, settingsState) {
           return MaterialApp(
-            title: 'Octave Music Player',
+            title: 'Aura Sound',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.generateTheme(settingsState.accentColor, false),
             darkTheme: AppTheme.generateTheme(settingsState.accentColor, true),

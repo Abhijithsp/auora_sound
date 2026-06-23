@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Flutter Music</string>
+	<string>Aura Sound</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>flutter_music</string>
+	<string>Aura Sound</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -66,5 +66,107 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>CFBundleIcons</key>
+	<dict>
+		<key>CFBundleAlternateIcons</key>
+		<dict>
+			<key>aura_sound_dark</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>aura_sound_dark</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>aura_sound_light</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>aura_sound_light</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>aura_sound_gradient</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>aura_sound_gradient</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>aura_sound_retro</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>aura_sound_retro</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>aura_sound_mono</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>aura_sound_mono</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+		</dict>
+	</dict>
+	<key>CFBundleIcons~ipad</key>
+	<dict>
+		<key>CFBundleAlternateIcons</key>
+		<dict>
+			<key>aura_sound_dark</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>aura_sound_dark</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>aura_sound_light</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>aura_sound_light</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>aura_sound_gradient</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>aura_sound_gradient</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>aura_sound_retro</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>aura_sound_retro</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>aura_sound_mono</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>aura_sound_mono</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+		</dict>
+	</dict>
 </dict>
 </plist>

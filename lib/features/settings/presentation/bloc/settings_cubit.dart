@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dynamic_icon/flutter_dynamic_icon.dart';
 import 'settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {
@@ -41,6 +42,8 @@ class SettingsCubit extends Cubit<SettingsState> {
     }
     visibleTabs.add('Settings');
 
+    final appIcon = _prefs.getString('appIcon') ?? 'Default';
+
     emit(SettingsState(
       themeMode: themeMode,
       accentColor: accentColor,
@@ -49,6 +52,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       visibleTabs: visibleTabs,
       allTabs: tabOrder,
       tabVisibility: tabVisibilityMap,
+      appIcon: appIcon,
     ));
   }
 
@@ -70,6 +74,20 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> updateDefaultStartupScreen(String screen) async {
     await _prefs.setString('defaultStartupScreen', screen);
     emit(state.copyWith(defaultStartupScreen: screen));
+  }
+
+  Future<void> updateAppIcon(String iconKey) async {
+    await _prefs.setString('appIcon', iconKey);
+    try {
+      if (await FlutterDynamicIcon.supportsAlternateIcons) {
+        // 'Default' is represented by null to revert to the primary icon
+        final String? alternateIconName = iconKey == 'Default' ? null : iconKey;
+        await FlutterDynamicIcon.setAlternateIconName(alternateIconName);
+      }
+    } catch (e) {
+      debugPrint("Failed to set alternate icon: $e");
+    }
+    emit(state.copyWith(appIcon: iconKey));
   }
 
   Future<void> toggleTabVisibility(String tab, bool visible) async {
