@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../features/music_library/data/datasources/local_song_datasource.dart';
 import '../../../features/music_library/data/repositories/song_repository_impl.dart';
@@ -16,14 +17,24 @@ import '../../../features/player/domain/usecases/play_song.dart';
 import '../../../features/player/domain/usecases/previous_song.dart';
 import '../../../features/player/presentation/bloc/player_cubit.dart';
 
+import '../../../features/settings/presentation/bloc/settings_cubit.dart';
+
 import '../audio/audio_service_initializer.dart';
 import '../audio/player_controller.dart';
+import '../audio/playback_history_tracker.dart';
 import '../permissions/permission_service.dart';
 
 final getIt = GetIt.instance;
 
 Future<void> setupServiceLocator() async {
   // External
+  final prefs = await SharedPreferences.getInstance();
+  getIt.registerSingleton<SharedPreferences>(prefs);
+
+  getIt.registerLazySingleton<PlaybackHistoryTracker>(
+    () => PlaybackHistoryTracker(getIt<SharedPreferences>()),
+  );
+  
   getIt.registerLazySingleton<OnAudioQuery>(() => OnAudioQuery());
 
   // Services
@@ -80,6 +91,11 @@ Future<void> setupServiceLocator() async {
       nextSong: getIt<NextSong>(),
       previousSong: getIt<PreviousSong>(),
       playerRepository: getIt<PlayerRepository>(),
+      historyTracker: getIt<PlaybackHistoryTracker>(),
     ),
+  );
+
+  getIt.registerFactory<SettingsCubit>(
+    () => SettingsCubit(getIt<SharedPreferences>()),
   );
 }

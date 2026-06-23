@@ -68,4 +68,10 @@ class PlayerRepositoryImpl implements PlayerRepository {
     );
     await _playerController.playMediaItem(targetItem);
   }
+
+  @override
+  Future<void> setShuffleMode(bool enabled) => _playerController.setShuffleMode(enabled);
+
+  @override
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) => _playerController.setRepeatMode(repeatMode);
 }

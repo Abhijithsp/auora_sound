@@ -2,42 +2,74 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   static ThemeData get darkTheme {
-    return ThemeData.dark().copyWith(
-      scaffoldBackgroundColor: Colors.transparent, // Allow glowing background to show through
-      primaryColor: const Color(0xFF3E82F7), // Stitch Primary Blue
-      colorScheme: const ColorScheme.dark(
-        primary: Color(0xFF3E82F7),
-        primaryContainer: Color(0xFF508EFF),
-        secondary: Color(0xFFA7C8FF),
-        secondaryContainer: Color(0xFF254A7A),
-        tertiary: Color(0xFFFF4B7D),
-        tertiaryContainer: Color(0xFFFF4D7E),
-        surface: Color(0xFF131313),
-        onPrimary: Color(0xFF002E6B),
-        onPrimaryContainer: Color(0xFF00275E),
-        onSecondary: Color(0xFF013060),
-        onSecondaryContainer: Color(0xFF98BAF1),
-        onSurface: Color(0xFFE5E2E1),
-        onSurfaceVariant: Color(0xFFC2C6D6),
-        outline: Color(0xFF8C909F),
-        outlineVariant: Color(0xFF424754),
-      ),
-      appBarTheme: const AppBarTheme(
+    return generateTheme(const Color(0xFF7C4DFF), true);
+  }
+
+  static ThemeData get lightTheme {
+    return generateTheme(const Color(0xFF7C4DFF), false);
+  }
+
+  static ThemeData generateTheme(Color accentColor, bool isDark) {
+    final colorScheme = isDark
+        ? ColorScheme.dark(
+            primary: accentColor,
+            primaryContainer: accentColor.withValues(alpha: 0.3),
+            secondary: accentColor.withValues(alpha: 0.7),
+            secondaryContainer: accentColor.withValues(alpha: 0.2),
+            tertiary: const Color(0xFFFF4B7D),
+            tertiaryContainer: const Color(0xFFFF4D7E),
+            surface: const Color(0xFF131315),
+            surfaceContainer: const Color(0xFF201F21),
+            surfaceContainerHigh: const Color(0xFF2A2A2C),
+            surfaceContainerHighest: const Color(0xFF353437),
+            onPrimary: isDark ? Colors.black : Colors.white,
+            onSecondary: isDark ? Colors.black : Colors.white,
+            onSurface: const Color(0xFFE5E1E4),
+            onSurfaceVariant: const Color(0xFFCAC3D8),
+            outline: const Color(0xFF948EA1),
+            outlineVariant: const Color(0xFF494455),
+          )
+        : ColorScheme.light(
+            primary: accentColor,
+            primaryContainer: accentColor.withValues(alpha: 0.2),
+            secondary: accentColor.withValues(alpha: 0.7),
+            secondaryContainer: accentColor.withValues(alpha: 0.1),
+            tertiary: const Color(0xFFFF4B7D),
+            tertiaryContainer: const Color(0xFFFF4D7E),
+            surface: const Color(0xFFF5F5F7),
+            surfaceContainer: const Color(0xFFEAEAEF),
+            surfaceContainerHigh: const Color(0xFFDFDFE5),
+            surfaceContainerHighest: const Color(0xFFD4D4DC),
+            onPrimary: Colors.white,
+            onSecondary: Colors.white,
+            onSurface: const Color(0xFF1C1B1F),
+            onSurfaceVariant: const Color(0xFF49454F),
+            outline: const Color(0xFF79747E),
+            outlineVariant: const Color(0xFFCAC4D0),
+          );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: isDark ? Brightness.dark : Brightness.light,
+      scaffoldBackgroundColor: Colors.transparent, // Allow glowing/scaffold background to show through
+      primaryColor: accentColor,
+      colorScheme: colorScheme,
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: Color(0xFFC2C6D6)),
+        iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
         titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w700,
-          color: Color(0xFFE5E2E1),
+          color: colorScheme.onSurface,
           fontFamily: 'Inter',
         ),
       ),
-      sliderTheme: const SliderThemeData(
-        activeTrackColor: Color(0xFF3E82F7),
-        inactiveTrackColor: Color(0xFF424754),
-        thumbColor: Color(0xFF3E82F7),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: accentColor,
+        inactiveTrackColor: colorScheme.outlineVariant,
+        thumbColor: accentColor,
         trackHeight: 4.0,
       ),
     );

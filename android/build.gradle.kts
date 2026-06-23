@@ -45,9 +45,9 @@ subprojects {
             if (currentSdk != null) {
                 val sdkVersionStr = currentSdk.replace("android-", "")
                 val sdkVersion = sdkVersionStr.toIntOrNull()
-                if (sdkVersion != null && sdkVersion < 34) {
-                    compileSdkVersion(34)
-                    logger.lifecycle("Forced compileSdkVersion for :${project.name} from $currentSdk to 34")
+                if (sdkVersion != null && sdkVersion < 36) {
+                    compileSdkVersion(36)
+                    logger.lifecycle("Forced compileSdkVersion for :${project.name} from $currentSdk to 36")
                 }
             }
         }

@@ -17,11 +17,8 @@ class NowPlayingPage extends StatefulWidget {
 }
 
 class _NowPlayingPageState extends State<NowPlayingPage> {
-  bool _isFavorite = false;
   bool _showLyrics = false;
-  double _volume = 0.7;
 
-  // Pre-defined premium simulated lyrics for a music experience
   final List<String> _simulatedLyrics = [
     "Echoes in the starlight...",
     "We wander through the neon glow",
@@ -39,6 +36,8 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final playerCubit = context.read<PlayerCubit>();
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -73,6 +72,7 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
 
             final duration = currentTrack.duration ?? Duration.zero;
             final size = MediaQuery.of(context).size.width * 0.72;
+            final isFavorite = state.favorites.contains(currentTrack.id);
 
             return SafeArea(
               child: Padding(
@@ -81,7 +81,6 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                   children: [
                     const SizedBox(height: 16),
                     
-                    // Top Visualizer Band indicating playback pulse
                     Opacity(
                       opacity: state.isPlaying ? 0.8 : 0.3,
                       child: VisualizerWidget(
@@ -93,7 +92,6 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                     ),
                     const SizedBox(height: 32),
 
-                    // Main Center Crossfade (Artwork vs Sync Lyrics)
                     Expanded(
                       child: Center(
                         child: AnimatedCrossFade(
@@ -109,10 +107,10 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                                 height: size * 0.9,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                  color: colors.primary.withValues(alpha: 0.1),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                                      color: colors.primary.withValues(alpha: 0.2),
                                       blurRadius: 40,
                                       spreadRadius: 10,
                                     ),
@@ -144,7 +142,7 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: theme.colorScheme.primary,
+                                        color: colors.primary,
                                         letterSpacing: 1.5,
                                       ),
                                     ),
@@ -156,7 +154,6 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                                   child: ListView.builder(
                                     itemCount: _simulatedLyrics.length,
                                     itemBuilder: (context, index) {
-                                      // Highlight line 4 as the active line for dynamic visual appeal
                                       final isActiveLine = index == 4;
                                       return Padding(
                                         padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -170,7 +167,7 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                                                 : Colors.white.withValues(alpha: 0.35),
                                             shadows: isActiveLine ? [
                                               Shadow(
-                                                color: theme.colorScheme.primary.withValues(alpha: 0.6),
+                                                color: colors.primary.withValues(alpha: 0.6),
                                                 blurRadius: 10,
                                               )
                                             ] : null,
@@ -189,7 +186,6 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                     
                     const SizedBox(height: 24),
 
-                    // Title, Artist and Favorite Button Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -213,7 +209,7 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                  color: colors.onSurfaceVariant,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -221,27 +217,24 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                             ],
                           ),
                         ),
-                        // Glass Fav Button
                         GestureDetector(
                           onTap: () {
-                            setState(() {
-                              _isFavorite = !_isFavorite;
-                            });
+                            playerCubit.toggleFavorite(currentTrack.id);
                           },
                           child: GlassmorphicContainer(
                             height: 48,
                             width: 48,
                             borderRadius: BorderRadius.circular(16),
                             borderOpacity: 0.1,
-                            backgroundOpacity: _isFavorite ? 0.2 : 0.05,
+                            backgroundOpacity: isFavorite ? 0.2 : 0.05,
                             padding: EdgeInsets.zero,
                             child: Center(
                               child: AnimatedScale(
-                                scale: _isFavorite ? 1.15 : 1.0,
+                                scale: isFavorite ? 1.15 : 1.0,
                                 duration: const Duration(milliseconds: 200),
                                 child: Icon(
-                                  _isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                                  color: _isFavorite ? theme.colorScheme.tertiary : theme.colorScheme.onSurfaceVariant,
+                                  isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                  color: isFavorite ? colors.tertiary : colors.onSurfaceVariant,
                                   size: 24,
                                 ),
                               ),
@@ -253,12 +246,10 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                     
                     const SizedBox(height: 24),
 
-                    // SeekBar
                     SeekBar(duration: duration),
                     
                     const SizedBox(height: 24),
 
-                    // Playback Controls
                     const PlayerControls(iconSize: 32),
                     
                     const SizedBox(height: 24),
@@ -266,47 +257,54 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                     // Volume Slider Row
                     Row(
                       children: [
-                        Icon(
-                          _volume == 0 ? Icons.volume_off_rounded : Icons.volume_down_rounded,
-                          size: 18,
-                          color: theme.colorScheme.onSurfaceVariant,
+                        IconButton(
+                          icon: Icon(
+                            state.isMuted || state.volume == 0
+                                ? Icons.volume_off_rounded
+                                : Icons.volume_down_rounded,
+                            size: 20,
+                            color: colors.onSurfaceVariant,
+                          ),
+                          onPressed: () => playerCubit.toggleMute(),
                         ),
                         Expanded(
                           child: SliderTheme(
                             data: theme.sliderTheme.copyWith(
-                              activeTrackColor: theme.colorScheme.primary,
-                              inactiveTrackColor: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-                              thumbColor: theme.colorScheme.primary,
+                              activeTrackColor: colors.primary,
+                              inactiveTrackColor: colors.outlineVariant.withValues(alpha: 0.3),
+                              thumbColor: colors.primary,
                               trackHeight: 3.0,
-                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.0),
+                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
                             ),
                             child: Slider(
-                              value: _volume,
+                              value: state.volume.clamp(0.0, 1.0),
                               onChanged: (val) {
-                                setState(() {
-                                  _volume = val;
-                                });
+                                playerCubit.setVolume(val);
                               },
                             ),
                           ),
                         ),
-                        Icon(
-                          Icons.volume_up_rounded,
-                          size: 18,
-                          color: theme.colorScheme.onSurfaceVariant,
+                        IconButton(
+                          icon: Icon(
+                            Icons.volume_up_rounded,
+                            size: 20,
+                            color: colors.onSurfaceVariant,
+                          ),
+                          onPressed: () {
+                            playerCubit.setVolume(1.0);
+                          },
                         ),
                       ],
                     ),
                     
                     const SizedBox(height: 16),
 
-                    // Bottom Navigation / Action Row (LIST, LYRICS, DEVICES)
                     Container(
                       padding: const EdgeInsets.only(top: 12),
                       decoration: BoxDecoration(
                         border: Border(
                           top: BorderSide(
-                            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.1),
+                            color: colors.outlineVariant.withValues(alpha: 0.1),
                           ),
                         ),
                       ),
@@ -326,7 +324,7 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                             icon: Icons.lyrics_rounded,
                             label: 'LYRICS',
                             isActive: _showLyrics,
-                            activeColor: theme.colorScheme.primary,
+                            activeColor: colors.primary,
                             onTap: () {
                               setState(() {
                                 _showLyrics = !_showLyrics;

@@ -18,6 +18,8 @@ abstract class PlayerController {
   Future<void> skipToQueueItem(int index);
   Future<void> loadPlaylist(List<MediaItem> items);
   Future<void> playMediaItem(MediaItem item);
+  Future<void> setShuffleMode(bool enabled);
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode);
 }
 
 class PlayerControllerImpl implements PlayerController {
@@ -78,4 +80,13 @@ class PlayerControllerImpl implements PlayerController {
     }
     return Future.value();
   }
+
+  @override
+  Future<void> setShuffleMode(bool enabled) => _audioHandler.setShuffleMode(
+        enabled ? AudioServiceShuffleMode.all : AudioServiceShuffleMode.none,
+      );
+
+  @override
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) =>
+      _audioHandler.setRepeatMode(repeatMode);
 }

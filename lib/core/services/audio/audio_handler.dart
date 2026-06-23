@@ -9,9 +9,11 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   void _init() {
-    // Pipe just_audio playback event stream to audio_service
-    _player.playbackEventStream.map(_transformEvent).pipe(playbackState);
-
+    // Listen to players state changes to update the audio service state
+    _player.playbackEventStream.listen((_) => _updateState());
+    _player.shuffleModeEnabledStream.listen((_) => _updateState());
+    _player.loopModeStream.listen((_) => _updateState());
+    
     // Automatically transition to next song on complete
     _player.processingStateStream.listen((state) {
       if (state == ProcessingState.completed) {
@@ -20,11 +22,12 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     });
   }
 
-  PlaybackState _transformEvent(PlaybackEvent event) {
-    return PlaybackState(
+  void _updateState() {
+    final playing = _player.playing;
+    playbackState.add(PlaybackState(
       controls: [
         MediaControl.skipToPrevious,
-        if (_player.playing) MediaControl.pause else MediaControl.play,
+        if (playing) MediaControl.pause else MediaControl.play,
         MediaControl.stop,
         MediaControl.skipToNext,
       ],
@@ -32,6 +35,8 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         MediaAction.seek,
         MediaAction.seekForward,
         MediaAction.seekBackward,
+        MediaAction.setShuffleMode,
+        MediaAction.setRepeatMode,
       },
       androidCompactActionIndices: const [0, 1, 3],
       processingState: const {
@@ -40,13 +45,21 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         ProcessingState.buffering: AudioProcessingState.buffering,
         ProcessingState.ready: AudioProcessingState.ready,
         ProcessingState.completed: AudioProcessingState.completed,
-      }[_player.processingState]!,
-      playing: _player.playing,
+      }[_player.processingState] ?? AudioProcessingState.idle,
+      playing: playing,
       updatePosition: _player.position,
       bufferedPosition: _player.bufferedPosition,
       speed: _player.speed,
-      queueIndex: event.currentIndex,
-    );
+      queueIndex: _player.currentIndex,
+      shuffleMode: _player.shuffleModeEnabled
+          ? AudioServiceShuffleMode.all
+          : AudioServiceShuffleMode.none,
+      repeatMode: {
+        LoopMode.off: AudioServiceRepeatMode.none,
+        LoopMode.one: AudioServiceRepeatMode.one,
+        LoopMode.all: AudioServiceRepeatMode.all,
+      }[_player.loopMode] ?? AudioServiceRepeatMode.none,
+    ));
   }
 
   Future<void> loadPlaylist(List<MediaItem> items) async {
@@ -59,6 +72,7 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
     }).toList();
 
+    // Set the playlist of audio sources
     await _player.setAudioSources(audioSources);
   }
 
@@ -69,7 +83,6 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (index != -1) {
       await skipToQueueItem(index);
     } else {
-      // If song not in queue, add it to queue and play
       final updatedQueue = List<MediaItem>.from(queue.value)..add(mediaItem);
       await loadPlaylist(updatedQueue);
       await skipToQueueItem(updatedQueue.length - 1);
@@ -98,6 +111,23 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       mediaItem.add(queue.value[index]);
       await _player.seek(Duration.zero, index: index);
     }
+  }
+
+  @override
+  Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
+    final enabled = shuffleMode == AudioServiceShuffleMode.all;
+    await _player.setShuffleModeEnabled(enabled);
+  }
+
+  @override
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
+    final mode = {
+      AudioServiceRepeatMode.none: LoopMode.off,
+      AudioServiceRepeatMode.one: LoopMode.one,
+      AudioServiceRepeatMode.all: LoopMode.all,
+      AudioServiceRepeatMode.group: LoopMode.all,
+    }[repeatMode]!;
+    await _player.setLoopMode(mode);
   }
 
   @override
