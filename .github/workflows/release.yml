@@ -47,31 +47,40 @@ jobs:
         run: flutter test
 
       - name: Decode Android Keystore
-        if: github.event_name != 'pull_request' && secrets.ANDROID_KEYSTORE_BASE64 != ''
+        if: github.event_name != 'pull_request'
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          # Strip spaces, carriage returns, and newlines before decoding to avoid corruption
-          echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n[:space:]' | base64 --decode > android/app/release.jks
-          if [ ! -s android/app/release.jks ]; then
-            echo "::error::Decoded keystore file is empty or corrupted!"
-            exit 1
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "ANDROID_KEYSTORE_BASE64 is not set in secrets. Skipping keystore decoding and release signing."
+          else
+            # Strip spaces, carriage returns, and newlines before decoding to avoid corruption
+            echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n[:space:]' | base64 --decode > android/app/release.jks
+            if [ ! -s android/app/release.jks ]; then
+              echo "::error::Decoded keystore file is empty or corrupted!"
+              exit 1
+            fi
+            echo "Keystore successfully decoded and validated."
           fi
-          echo "Keystore successfully decoded and validated."
 
       - name: Create key.properties
-        if: github.event_name != 'pull_request' && secrets.ANDROID_KEYSTORE_BASE64 != ''
+        if: github.event_name != 'pull_request'
         env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           ALIAS: ${{ secrets.ALIAS }}
         run: |
-          cat <<EOF > android/key.properties
-          storePassword=$KEY_STORE_PASSWORD
-          keyPassword=$KEY_PASSWORD
-          keyAlias=$ALIAS
-          storeFile=release.jks
-          EOF
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "ANDROID_KEYSTORE_BASE64 is not set in secrets. Skipping key.properties generation."
+          else
+            cat <<EOF > android/key.properties
+storePassword=$KEY_STORE_PASSWORD
+keyPassword=$KEY_PASSWORD
+keyAlias=$ALIAS
+storeFile=release.jks
+EOF
+          fi
 
       - name: Build APK
         run: flutter build apk --release
