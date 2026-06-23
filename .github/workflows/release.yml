@@ -1,4 +1,4 @@
-name: Build & Release Signed APK and AAB
+name: Flutter Build Release
 
 on:
   push:
@@ -7,34 +7,22 @@ on:
       - master
     tags:
       - 'v*'
-  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - master
 
 permissions:
   contents: write
 
 jobs:
   build:
-    name: Build Signed Artifacts
+    name: Build Release Artifacts
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Determine Tag and Release Name
-        id: release_info
-        run: |
-          if [ "${{ github.ref_type }}" = "tag" ]; then
-            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-            echo "release_name=Release ${{ github.ref_name }}" >> $GITHUB_OUTPUT
-            echo "draft=false" >> $GITHUB_OUTPUT
-            echo "prerelease=false" >> $GITHUB_OUTPUT
-          else
-            echo "tag=v0.0.${{ github.run_number }}" >> $GITHUB_OUTPUT
-            echo "release_name=Dev Build v0.0.${{ github.run_number }}" >> $GITHUB_OUTPUT
-            echo "draft=false" >> $GITHUB_OUTPUT
-            echo "prerelease=true" >> $GITHUB_OUTPUT
-          fi
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -45,11 +33,18 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.44.0'
           channel: 'stable'
           cache: true
 
-      - name: Install Dependencies
+      - name: Get dependencies
         run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
 
       - name: Decode Android Keystore
         env:
@@ -67,7 +62,6 @@ jobs:
           fi
           echo "Keystore successfully decoded and validated."
 
-
       - name: Create key.properties
         env:
           KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -81,33 +75,34 @@ jobs:
           storeFile=release.jks
           EOF
 
-      - name: Build Release APK
+      - name: Build APK
         run: flutter build apk --release
 
-      - name: Build Release AAB
+      - name: Build AppBundle
         run: flutter build appbundle --release
 
-      - name: Upload Release APK Artifact
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Upload Release AAB Artifact
+      - name: Upload AppBundle Artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-aab
           path: build/app/outputs/bundle/release/app-release.aab
 
-      - name: Create and Publish GitHub Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
+        if: github.event_name != 'pull_request'
         with:
-          tag_name: ${{ steps.release_info.outputs.tag }}
-          name: ${{ steps.release_info.outputs.release_name }}
-          draft: ${{ steps.release_info.outputs.draft == 'true' }}
-          prerelease: ${{ steps.release_info.outputs.prerelease == 'true' }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('v1.0.0-build.{0}', github.run_number) }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && format('Release {0}', github.ref_name) || format('Build v1.0.0-build.{0}', github.run_number) }}
           files: |
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
