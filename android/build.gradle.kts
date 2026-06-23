@@ -20,19 +20,8 @@ subprojects {
 }
 
 subprojects {
-    tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
-    }
-
     plugins.withId("com.android.library") {
         val android = extensions.getByType<com.android.build.gradle.LibraryExtension>()
-        try {
-            android.compileOptions.sourceCompatibility = JavaVersion.VERSION_17
-            android.compileOptions.targetCompatibility = JavaVersion.VERSION_17
-        } catch (e: Exception) {
-            // Already finalized
-        }
         
         // Dynamically set namespace from AndroidManifest.xml if missing
         if (android.namespace == null) {
@@ -47,16 +36,46 @@ subprojects {
                 }
             }
         }
+
+        afterEvaluate {
+            try {
+                android.compileSdk = 34
+                logger.lifecycle("Forced compileSdk for library :${project.name} to 34")
+            } catch (e: Exception) {
+                // Ignore
+            }
+            try {
+                android.compileSdkVersion(34)
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
     }
 
     plugins.withId("org.jetbrains.kotlin.android") {
         tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
             try {
-                compilerOptions {
-                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+                // Dynamically match Kotlin's jvmTarget to the Android extension's targetCompatibility
+                val android = project.extensions.findByName("android") as? com.android.build.gradle.BaseExtension
+                val targetCompatibility = android?.compileOptions?.targetCompatibility
+                if (targetCompatibility != null) {
+                    val jvmTargetVal = when (targetCompatibility) {
+                        JavaVersion.VERSION_1_8 -> org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+                        JavaVersion.VERSION_11 -> org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+                        JavaVersion.VERSION_17 -> org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+                        JavaVersion.VERSION_21 -> org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
+                        else -> org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+                    }
+                    compilerOptions {
+                        jvmTarget.set(jvmTargetVal)
+                    }
+                } else {
+                    compilerOptions {
+                        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+                    }
                 }
             } catch (e: Exception) {
-                // Already finalized
+                // Already finalized or compilation options not accessible
             }
         }
     }
