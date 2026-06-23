@@ -36,22 +36,31 @@ subprojects {
                 }
             }
         }
+    }
 
-        afterEvaluate {
-            try {
-                android.compileSdk = 34
-                logger.lifecycle("Forced compileSdk for library :${project.name} to 34")
-            } catch (e: Exception) {
-                // Ignore
-            }
-            try {
-                android.compileSdkVersion(34)
-            } catch (e: Exception) {
-                // Ignore
+    val configureAndroid = {
+        val android = project.extensions.findByName("android") as? com.android.build.gradle.BaseExtension
+        android?.apply {
+            val currentSdk = compileSdkVersion
+            if (currentSdk != null) {
+                val sdkVersionStr = currentSdk.replace("android-", "")
+                val sdkVersion = sdkVersionStr.toIntOrNull()
+                if (sdkVersion != null && sdkVersion < 34) {
+                    compileSdkVersion(34)
+                    logger.lifecycle("Forced compileSdkVersion for :${project.name} from $currentSdk to 34")
+                }
             }
         }
     }
 
+    if (project.state.executed) {
+        configureAndroid()
+    } else {
+        project.afterEvaluate {
+            configureAndroid()
+        }
+    }
+    
     plugins.withId("org.jetbrains.kotlin.android") {
         tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
             try {
