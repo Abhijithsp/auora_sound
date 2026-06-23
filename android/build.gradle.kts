@@ -20,6 +20,11 @@ subprojects {
 }
 
 subprojects {
+    tasks.withType<org.gradle.api.tasks.compile.JavaCompile>().configureEach {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
+    }
+
     plugins.withId("com.android.library") {
         val android = extensions.getByType<com.android.build.gradle.LibraryExtension>()
         try {
