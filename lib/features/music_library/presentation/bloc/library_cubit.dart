@@ -37,11 +37,22 @@ class LibraryCubit extends Cubit<LibraryState> {
     
     _unfilteredSongs = List<Song>.from(cachedSongs);
 
+    // Load custom playlists
+    final playlistsJson = prefs.getString('custom_playlists');
+    Map<String, List<String>> playlists = {};
+    if (playlistsJson != null) {
+      try {
+        final Map<String, dynamic> decoded = jsonDecode(playlistsJson);
+        playlists = decoded.map((key, value) => MapEntry(key, List<String>.from(value as List)));
+      } catch (_) {}
+    }
+
     emit(state.copyWith(
       autoScan: autoScan,
       excludedFolders: excluded,
       includedFolders: included,
       songs: cachedSongs,
+      playlists: playlists,
       status: cachedSongs.isNotEmpty ? LibraryStatus.success : LibraryStatus.initial,
     ));
 
@@ -210,5 +221,52 @@ class LibraryCubit extends Cubit<LibraryState> {
       }
     }
     return folders.toList()..sort();
+  }
+
+  Future<bool> createPlaylist(String name) async {
+    final trimmedName = name.trim();
+    if (trimmedName.isEmpty) return false;
+    final updatedPlaylists = Map<String, List<String>>.from(state.playlists);
+    if (updatedPlaylists.containsKey(trimmedName)) {
+      return false;
+    }
+    updatedPlaylists[trimmedName] = [];
+    await prefs.setString('custom_playlists', jsonEncode(updatedPlaylists));
+    emit(state.copyWith(playlists: updatedPlaylists));
+    return true;
+  }
+
+  Future<void> deletePlaylist(String name) async {
+    final updatedPlaylists = Map<String, List<String>>.from(state.playlists);
+    if (updatedPlaylists.containsKey(name)) {
+      updatedPlaylists.remove(name);
+      await prefs.setString('custom_playlists', jsonEncode(updatedPlaylists));
+      emit(state.copyWith(playlists: updatedPlaylists));
+    }
+  }
+
+  Future<void> addSongToPlaylist(String name, String songUri) async {
+    final updatedPlaylists = Map<String, List<String>>.from(state.playlists);
+    if (updatedPlaylists.containsKey(name)) {
+      final list = List<String>.from(updatedPlaylists[name]!);
+      if (!list.contains(songUri)) {
+        list.add(songUri);
+        updatedPlaylists[name] = list;
+        await prefs.setString('custom_playlists', jsonEncode(updatedPlaylists));
+        emit(state.copyWith(playlists: updatedPlaylists));
+      }
+    }
+  }
+
+  Future<void> removeSongFromPlaylist(String name, String songUri) async {
+    final updatedPlaylists = Map<String, List<String>>.from(state.playlists);
+    if (updatedPlaylists.containsKey(name)) {
+      final list = List<String>.from(updatedPlaylists[name]!);
+      if (list.remove(songUri)) {
+        updatedPlaylists[name] = list;
+        await prefs.setString('custom_playlists', jsonEncode(updatedPlaylists));
+        emit(state.copyWith(playlists: updatedPlaylists));
+      }
+    }
   }
 }

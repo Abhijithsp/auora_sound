@@ -20,6 +20,13 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         skipToNext();
       }
     });
+
+    // Listen to current index changes to update current mediaItem
+    _player.currentIndexStream.listen((index) {
+      if (index != null && index >= 0 && index < queue.value.length) {
+        mediaItem.add(queue.value[index]);
+      }
+    });
   }
 
   void _updateState() {

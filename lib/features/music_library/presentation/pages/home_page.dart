@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/widgets/glassmorphic_container.dart';
 import '../../../../core/services/locator/service_locator.dart';
 import '../../../../core/services/audio/playback_history_tracker.dart';
 import '../../domain/entities/song.dart';
@@ -9,6 +10,7 @@ import '../bloc/library_state.dart';
 import '../../../player/presentation/bloc/player_cubit.dart';
 import '../../../player/presentation/bloc/player_state.dart';
 import '../widgets/song_tile.dart';
+import 'playlist_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,10 +25,69 @@ class _HomePageState extends State<HomePage> {
   String _searchQuery = '';
   bool _isSearching = false;
 
+  final TextEditingController _playlistNameController = TextEditingController();
+
   @override
   void dispose() {
     _searchController.dispose();
+    _playlistNameController.dispose();
     super.dispose();
+  }
+
+  void _showCreatePlaylistDialog(BuildContext context, LibraryCubit cubit) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1E1E2C),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('New Playlist', style: TextStyle(color: Colors.white)),
+          content: TextField(
+            controller: _playlistNameController,
+            autofocus: true,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Enter playlist name',
+              hintStyle: const TextStyle(color: Colors.white30),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF8B5CF6)),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _playlistNameController.clear();
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            ),
+            TextButton(
+              onPressed: () async {
+                final name = _playlistNameController.text.trim();
+                if (name.isNotEmpty) {
+                  final success = await cubit.createPlaylist(name);
+                  if (success) {
+                    _playlistNameController.clear();
+                    if (context.mounted) Navigator.pop(context);
+                  } else {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Playlist already exists')),
+                      );
+                    }
+                  }
+                }
+              },
+              child: const Text('Create', style: TextStyle(color: Color(0xFF8B5CF6), fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // Generates a beautiful deterministic neon gradient based on the song title hash
@@ -84,10 +145,26 @@ class _HomePageState extends State<HomePage> {
 
           final allSongs = libraryState.songs;
 
-          final playerState = context.watch<PlayerCubit>().state;
+          // Retrieve dynamic history lists
+          final recentIds = _tracker.getRecentlyPlayed();
+          final recentlyPlayed = recentIds
+              .map(
+                (id) => allSongs.firstWhere(
+                  (s) => s.id == id || s.uri == id,
+                  orElse: () => const Song(
+                    id: '',
+                    title: '',
+                    artist: '',
+                    album: '',
+                    duration: Duration.zero,
+                    uri: '',
+                  ),
+                ),
+              )
+              .where((s) => s.id.isNotEmpty)
+              .toList();
 
-
-          final favIds = playerState.favorites;
+          final favIds = _tracker.getFavorites();
           final favorites = favIds
               .map(
                 (id) => allSongs.firstWhere(
@@ -109,11 +186,12 @@ class _HomePageState extends State<HomePage> {
           final mostPlayed = List<Song>.from(allSongs)
             ..sort(
               (a, b) =>
-                  (playCounts[b.id] ?? playCounts[b.uri] ?? 0)
-                  .compareTo(playCounts[a.id] ?? playCounts[a.uri] ?? 0),
+                  (playCounts[b.uri] ?? playCounts[b.id] ?? 0)
+                      .compareTo(playCounts[a.uri] ?? playCounts[a.id] ?? 0),
             );
           final filteredMostPlayed = mostPlayed
-              .where((s) => (playCounts[s.id] ?? playCounts[s.uri] ?? 0) > 0)
+              .where((s) => (playCounts[s.uri] ?? playCounts[s.id] ?? 0) > 0)
+              .take(10)
               .toList();
 
           // Recently added (mocked as last 50 songs loaded)
@@ -246,28 +324,353 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
               ] else ...[
-                // Favorites Section (Horizontal Scrollable)
-                if (favorites.isNotEmpty)
+                // Welcome / Greetings Section
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 16.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Good evening,',
+                          style: textTheme.displaySmall?.copyWith(
+                            fontWeight: FontWeight.w400,
+                            color: colors.onSurface,
+                          ),
+                        ),
+                        Text(
+                          'Alex',
+                          style: textTheme.displayMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: colors.primary,
+                            height: 1.1,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Ready for your nightly resonance?',
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Recently Played Section
+                if (recentlyPlayed.isNotEmpty) ...[
                   SliverToBoxAdapter(
-                    child: _buildHorizontalSongList(
-                      context: context,
-                      title: 'Favorites',
-                      songs: favorites,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 12.0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Recently Played',
+                            style: textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            child: Text(
+                              'See All',
+                              style: TextStyle(color: colors.primary),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 180,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: recentlyPlayed.length,
+                        itemBuilder: (context, index) {
+                          final song = recentlyPlayed[index];
+                          return Container(
+                            width: 140,
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            child: GestureDetector(
+                              onTap: () {
+                                context.read<PlayerCubit>().playSongItem(
+                                  song,
+                                  recentlyPlayed,
+                                );
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildArtworkPlaceholder(song.title, 130),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    song.title,
+                                    style: textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    song.artist,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: colors.onSurfaceVariant,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+
+                // Favorites & Most Played Grids
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 20.0,
+                    ),
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1.4,
+                      children: [
+                        // Favorites Card
+                        GestureDetector(
+                          onTap: () {
+                            if (favorites.isNotEmpty) {
+                              context.read<PlayerCubit>().playSongItem(
+                                favorites.first,
+                                favorites,
+                              );
+                            }
+                          },
+                          child: GlassmorphicContainer(
+                            borderRadius: BorderRadius.circular(20),
+                            borderOpacity: 0.1,
+                            backgroundOpacity: 0.06,
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Icon(
+                                  Icons.favorite_rounded,
+                                  color: colors.tertiary,
+                                  size: 36,
+                                ),
+                                const Spacer(),
+                                Text(
+                                  'Favorites',
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  '${favorites.length} Tracks Saved',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: colors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Most Played Card
+                        GestureDetector(
+                          onTap: () {
+                            if (filteredMostPlayed.isNotEmpty) {
+                              context.read<PlayerCubit>().playSongItem(
+                                filteredMostPlayed.first,
+                                filteredMostPlayed,
+                              );
+                            }
+                          },
+                          child: GlassmorphicContainer(
+                            borderRadius: BorderRadius.circular(20),
+                            borderOpacity: 0.1,
+                            backgroundOpacity: 0.06,
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Icon(
+                                  Icons.trending_up_rounded,
+                                  color: colors.primary,
+                                  size: 36,
+                                ),
+                                const Spacer(),
+                                Text(
+                                  'Most Played',
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  '${filteredMostPlayed.length} Tracks',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: colors.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Playlists Grid
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 8.0,
+                    ),
+                    child: Text(
+                      'Playlists',
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                if (libraryState.playlists.isEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                      child: GestureDetector(
+                        onTap: () => _showCreatePlaylistDialog(context, context.read<LibraryCubit>()),
+                        child: GlassmorphicContainer(
+                          borderRadius: BorderRadius.circular(20),
+                          borderOpacity: 0.08,
+                          backgroundOpacity: 0.04,
+                          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.playlist_add_rounded, color: colors.primary),
+                              const SizedBox(width: 12),
+                              Text(
+                                'No Playlists. Create New +',
+                                style: textTheme.bodyLarge?.copyWith(
+                                  color: colors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 12.0,
+                    ),
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.95,
+                          ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final playlistName = libraryState.playlists.keys.elementAt(index);
+                        final songUris = libraryState.playlists[playlistName] ?? [];
+                        final songCount = songUris.length;
+                        final grad = _getDeterministicColors(playlistName);
+
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PlaylistDetailPage(
+                                  playlistName: playlistName,
+                                ),
+                              ),
+                            );
+                          },
+                          child: GlassmorphicContainer(
+                            borderRadius: BorderRadius.circular(20),
+                            borderOpacity: 0.08,
+                            backgroundOpacity: 0.04,
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      gradient: LinearGradient(
+                                        colors: grad,
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                    ),
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.queue_music_rounded,
+                                        color: Colors.white,
+                                        size: 36,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  playlistName,
+                                  style: textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '$songCount tracks',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: colors.onSurfaceVariant,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }, childCount: math.min(4, libraryState.playlists.length)),
                     ),
                   ),
 
-                // Most Played Section (Horizontal Scrollable)
-                if (filteredMostPlayed.isNotEmpty)
-                  SliverToBoxAdapter(
-                    child: _buildHorizontalSongList(
-                      context: context,
-                      title: 'Most Played',
-                      songs: filteredMostPlayed,
-                      playCounts: playCounts,
-                    ),
-                  ),
-
-                // Recently Added Section (Vertical List of 50)
+                // Recently Added Section
                 if (recentlyAdded.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(
@@ -316,106 +719,6 @@ class _HomePageState extends State<HomePage> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildHorizontalSongList({
-    required BuildContext context,
-    required String title,
-    required List<Song> songs,
-    Map<String, int>? playCounts,
-  }) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-          child: Text(
-            title,
-            style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        SizedBox(
-          height: 185,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: songs.length,
-            itemBuilder: (context, index) {
-              final song = songs[index];
-              final count = playCounts != null ? (playCounts[song.id] ?? playCounts[song.uri] ?? 0) : null;
-
-              return Container(
-                width: 140,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                child: GestureDetector(
-                  onTap: () {
-                    context.read<PlayerCubit>().playSongItem(
-                      song,
-                      songs,
-                    );
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Stack(
-                        children: [
-                          _buildArtworkPlaceholder(song.title, 130),
-                          if (count != null)
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.7),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: colors.primary.withValues(alpha: 0.5), width: 1),
-                                ),
-                                child: Text(
-                                  '$count ${count == 1 ? 'play' : 'plays'}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        song.title,
-                        style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        song.artist,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
     );
   }
 }

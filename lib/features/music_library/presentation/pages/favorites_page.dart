@@ -29,7 +29,7 @@ class FavoritesPage extends StatelessWidget {
             builder: (context, playerState) {
               final favIds = playerState.favorites;
               final favorites = favIds
-                  .map((id) => allSongs.firstWhere((s) => s.id == id, orElse: () => const Song(id: '', title: '', artist: '', album: '', duration: Duration.zero, uri: '')))
+                  .map((id) => allSongs.firstWhere((s) => s.id == id || s.uri == id, orElse: () => const Song(id: '', title: '', artist: '', album: '', duration: Duration.zero, uri: '')))
                   .where((s) => s.id.isNotEmpty)
                   .toList();
 

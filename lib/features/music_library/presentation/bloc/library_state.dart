@@ -10,6 +10,7 @@ class LibraryState {
   final List<String> excludedFolders;
   final List<String> includedFolders;
   final bool autoScan;
+  final Map<String, List<String>> playlists;
 
   const LibraryState({
     this.status = LibraryStatus.initial,
@@ -19,6 +20,7 @@ class LibraryState {
     this.excludedFolders = const [],
     this.includedFolders = const [],
     this.autoScan = true,
+    this.playlists = const {},
   });
 
   LibraryState copyWith({
@@ -29,6 +31,7 @@ class LibraryState {
     List<String>? excludedFolders,
     List<String>? includedFolders,
     bool? autoScan,
+    Map<String, List<String>>? playlists,
   }) {
     return LibraryState(
       status: status ?? this.status,
@@ -38,6 +41,7 @@ class LibraryState {
       excludedFolders: excludedFolders ?? this.excludedFolders,
       includedFolders: includedFolders ?? this.includedFolders,
       autoScan: autoScan ?? this.autoScan,
+      playlists: playlists ?? this.playlists,
     );
   }
 }

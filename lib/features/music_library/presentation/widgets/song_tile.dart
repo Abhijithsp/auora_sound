@@ -3,12 +3,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/visualizer_widget.dart';
 import '../../domain/entities/song.dart';
+import 'song_options_bottom_sheet.dart';
 
 class SongTile extends StatelessWidget {
   final Song song;
   final VoidCallback onTap;
   final bool isActive;
   final bool isPlaying;
+  final String? playlistName;
 
   const SongTile({
     super.key,
@@ -16,6 +18,7 @@ class SongTile extends StatelessWidget {
     required this.onTap,
     this.isActive = false,
     this.isPlaying = false,
+    this.playlistName,
   });
 
   // Generates a beautiful deterministic neon gradient based on the song title hash
@@ -157,11 +160,10 @@ class SongTile extends StatelessWidget {
             color: isActive ? colors.primary : colors.onSurfaceVariant,
           ),
           onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Options for: ${song.title}'),
-                duration: const Duration(seconds: 1),
-              ),
+            SongOptionsBottomSheet.show(
+              context,
+              song,
+              playlistName: playlistName,
             );
           },
         ),

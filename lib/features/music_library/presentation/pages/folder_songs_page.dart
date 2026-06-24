@@ -11,7 +11,7 @@ import '../../../../core/widgets/glassmorphic_container.dart';
 import '../../../../core/widgets/visualizer_widget.dart';
 import '../../../../core/services/locator/service_locator.dart';
 import '../../../../core/services/audio/player_controller.dart';
-
+import '../widgets/song_options_bottom_sheet.dart';
 class FolderSongsPage extends StatefulWidget {
   final String folderName;
   final List<Song> songs;
@@ -435,37 +435,11 @@ class _FolderSongsPageState extends State<FolderSongsPage> {
                                         ),
                                         const SizedBox(width: 8),
                                         if (!_isMultiSelectMode)
-                                          PopupMenuButton<String>(
+                                          IconButton(
                                             icon: Icon(Icons.more_vert_rounded, color: colors.onSurfaceVariant),
-                                            onSelected: (action) {
-                                              if (action == 'play') {
-                                                context.read<PlayerCubit>().playSongItem(song, widget.songs);
-                                              } else if (action == 'queue') {
-                                                final controller = getIt<PlayerController>();
-                                                final mediaItem = MediaItem(
-                                                  id: song.uri,
-                                                  album: song.album,
-                                                  title: song.title,
-                                                  artist: song.artist,
-                                                  duration: song.duration,
-                                                  artUri: song.artworkUri != null ? Uri.parse(song.artworkUri!) : null,
-                                                );
-                                                controller.loadPlaylist(List.from(controller.currentQueue)..add(mediaItem));
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  const SnackBar(content: Text('Added to Queue')),
-                                                );
-                                              }
+                                            onPressed: () {
+                                              SongOptionsBottomSheet.show(context, song);
                                             },
-                                            itemBuilder: (context) => [
-                                              const PopupMenuItem(
-                                                value: 'play',
-                                                child: Text('Play Now'),
-                                              ),
-                                              const PopupMenuItem(
-                                                value: 'queue',
-                                                child: Text('Add to Queue'),
-                                              ),
-                                            ],
                                           ),
                                       ],
                                     ),
