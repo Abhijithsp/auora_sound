@@ -40,8 +40,13 @@ class _HomePageState extends State<HomePage> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF1E1E2C),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('New Playlist', style: TextStyle(color: Colors.white)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            'New Playlist',
+            style: TextStyle(color: Colors.white),
+          ),
           content: TextField(
             controller: _playlistNameController,
             autofocus: true,
@@ -50,7 +55,9 @@ class _HomePageState extends State<HomePage> {
               hintText: 'Enter playlist name',
               hintStyle: const TextStyle(color: Colors.white30),
               enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.2),
+                ),
               ),
               focusedBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: Color(0xFF8B5CF6)),
@@ -63,7 +70,10 @@ class _HomePageState extends State<HomePage> {
                 _playlistNameController.clear();
                 Navigator.pop(context);
               },
-              child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white70),
+              ),
             ),
             TextButton(
               onPressed: () async {
@@ -76,13 +86,21 @@ class _HomePageState extends State<HomePage> {
                   } else {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Playlist already exists')),
+                        const SnackBar(
+                          content: Text('Playlist already exists'),
+                        ),
                       );
                     }
                   }
                 }
               },
-              child: const Text('Create', style: TextStyle(color: Color(0xFF8B5CF6), fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Create',
+                style: TextStyle(
+                  color: Color(0xFF8B5CF6),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         );
@@ -185,9 +203,9 @@ class _HomePageState extends State<HomePage> {
           final playCounts = _tracker.getPlayCounts();
           final mostPlayed = List<Song>.from(allSongs)
             ..sort(
-              (a, b) =>
-                  (playCounts[b.uri] ?? playCounts[b.id] ?? 0)
-                      .compareTo(playCounts[a.uri] ?? playCounts[a.id] ?? 0),
+              (a, b) => (playCounts[b.uri] ?? playCounts[b.id] ?? 0).compareTo(
+                playCounts[a.uri] ?? playCounts[a.id] ?? 0,
+              ),
             );
           final filteredMostPlayed = mostPlayed
               .where((s) => (playCounts[s.uri] ?? playCounts[s.id] ?? 0) > 0)
@@ -324,43 +342,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
               ] else ...[
-                // Welcome / Greetings Section
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                      vertical: 16.0,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Good evening,',
-                          style: textTheme.displaySmall?.copyWith(
-                            fontWeight: FontWeight.w400,
-                            color: colors.onSurface,
-                          ),
-                        ),
-                        Text(
-                          'Alex',
-                          style: textTheme.displayMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            color: colors.primary,
-                            height: 1.1,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Ready for your nightly resonance?',
-                          style: textTheme.bodyLarge?.copyWith(
-                            color: colors.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
                 // Recently Played Section
                 if (recentlyPlayed.isNotEmpty) ...[
                   SliverToBoxAdapter(
@@ -560,18 +541,30 @@ class _HomePageState extends State<HomePage> {
                 if (libraryState.playlists.isEmpty)
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 8.0,
+                      ),
                       child: GestureDetector(
-                        onTap: () => _showCreatePlaylistDialog(context, context.read<LibraryCubit>()),
+                        onTap: () => _showCreatePlaylistDialog(
+                          context,
+                          context.read<LibraryCubit>(),
+                        ),
                         child: GlassmorphicContainer(
                           borderRadius: BorderRadius.circular(20),
                           borderOpacity: 0.08,
                           backgroundOpacity: 0.04,
-                          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 24,
+                            horizontal: 16,
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.playlist_add_rounded, color: colors.primary),
+                              Icon(
+                                Icons.playlist_add_rounded,
+                                color: colors.primary,
+                              ),
                               const SizedBox(width: 12),
                               Text(
                                 'No Playlists. Create New +',
@@ -600,73 +593,78 @@ class _HomePageState extends State<HomePage> {
                             mainAxisSpacing: 16,
                             childAspectRatio: 0.95,
                           ),
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final playlistName = libraryState.playlists.keys.elementAt(index);
-                        final songUris = libraryState.playlists[playlistName] ?? [];
-                        final songCount = songUris.length;
-                        final grad = _getDeterministicColors(playlistName);
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final playlistName = libraryState.playlists.keys
+                              .elementAt(index);
+                          final songUris =
+                              libraryState.playlists[playlistName] ?? [];
+                          final songCount = songUris.length;
+                          final grad = _getDeterministicColors(playlistName);
 
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PlaylistDetailPage(
-                                  playlistName: playlistName,
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PlaylistDetailPage(
+                                    playlistName: playlistName,
+                                  ),
                                 ),
+                              );
+                            },
+                            child: GlassmorphicContainer(
+                              borderRadius: BorderRadius.circular(20),
+                              borderOpacity: 0.08,
+                              backgroundOpacity: 0.04,
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        gradient: LinearGradient(
+                                          colors: grad,
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                      ),
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.queue_music_rounded,
+                                          color: Colors.white,
+                                          size: 36,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    playlistName,
+                                    style: textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    '$songCount tracks',
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: colors.onSurfaceVariant,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                          child: GlassmorphicContainer(
-                            borderRadius: BorderRadius.circular(20),
-                            borderOpacity: 0.08,
-                            backgroundOpacity: 0.04,
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      gradient: LinearGradient(
-                                        colors: grad,
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                    ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.queue_music_rounded,
-                                        color: Colors.white,
-                                        size: 36,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  playlistName,
-                                  style: textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Text(
-                                  '$songCount tracks',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colors.onSurfaceVariant,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
                             ),
-                          ),
-                        );
-                      }, childCount: math.min(4, libraryState.playlists.length)),
+                          );
+                        },
+                        childCount: math.min(4, libraryState.playlists.length),
+                      ),
                     ),
                   ),
 

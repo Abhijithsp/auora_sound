@@ -146,6 +146,9 @@ class _MainShellPageState extends State<MainShellPage> {
                               setState(() {
                                 _currentTab = tab;
                               });
+                              if (!isTablet) {
+                                Navigator.pop(context);
+                              }
                             },
                           ),
                         );

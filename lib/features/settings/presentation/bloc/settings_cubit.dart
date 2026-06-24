@@ -82,10 +82,19 @@ class SettingsCubit extends Cubit<SettingsState> {
     ));
   }
 
-  void setPreviewTheme(String presetName, ThemeMode mode) {
+  Future<void> setPreviewTheme(String presetName, ThemeMode mode) async {
+    await _prefs.setString('themeMode', mode.name);
+    await _prefs.setString('themePresetName', presetName);
+    
+    final preset = AppThemePresets.getByName(presetName);
+    await _prefs.setInt('accentColor', preset.primary.toARGB32());
+
     emit(state.copyWith(
+      themeMode: mode,
+      themePresetName: presetName,
       previewPresetName: presetName,
       previewThemeMode: mode,
+      accentColor: preset.primary,
     ));
   }
 

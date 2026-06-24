@@ -188,8 +188,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
 
-                  // Theme Apply Actions
-                  _buildApplyThemeActions(context, state, settingsCubit),
+
 
                   // App Icon Selector
                   Container(
@@ -797,62 +796,7 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildApplyThemeActions(BuildContext context, SettingsState state, SettingsCubit settingsCubit) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final hasChanges = state.previewPresetName != state.themePresetName || state.previewThemeMode != state.themeMode;
 
-    if (!hasChanges) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () {
-                settingsCubit.resetPreviewToApplied();
-              },
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                side: BorderSide(color: colors.primary.withValues(alpha: 0.5)),
-              ),
-              child: Text(
-                'Cancel',
-                style: TextStyle(fontWeight: FontWeight.bold, color: colors.primary),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: FilledButton(
-              onPressed: () async {
-                await settingsCubit.applyTheme();
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Theme applied successfully!'),
-                    duration: Duration(seconds: 1),
-                  ),
-                );
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: colors.primary,
-                foregroundColor: colors.onPrimary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: const Text(
-                'Apply Theme',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showFolderManagementBottomSheet(BuildContext context, {required bool isExcluded}) {
     showModalBottomSheet(
