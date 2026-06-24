@@ -1,45 +1,63 @@
 import 'package:flutter/material.dart';
+import 'theme_presets.dart';
 
 class AppTheme {
   static ThemeData get darkTheme {
-    return generateTheme(const Color(0xFF7C4DFF), true);
+    return generateTheme(AppThemePresets.presets[0], true);
   }
 
   static ThemeData get lightTheme {
-    return generateTheme(const Color(0xFF7C4DFF), false);
+    return generateTheme(AppThemePresets.presets[0], false);
   }
 
-  static ThemeData generateTheme(Color accentColor, bool isDark) {
+  static ThemeData generateTheme(AppThemePreset preset, bool isDark) {
+    final primaryColor = preset.primary;
+    final secondaryColor = preset.secondary;
+    final accentColor = preset.accent;
+    final surfaceColor = isDark ? preset.backgroundDark : preset.backgroundLight;
+    final cardColor = isDark ? preset.cardDark : preset.cardLight;
+
+    // Lighter surfaces for elevated containers (M3 containers)
+    final double cardBrightnessOffset = isDark ? 0.05 : -0.04;
+    Color adjustColorBrightness(Color base, double factor) {
+      final hsv = HSVColor.fromColor(base);
+      final double newV = (hsv.value + factor).clamp(0.0, 1.0);
+      return hsv.withValue(newV).toColor();
+    }
+    
+    final containerHigh = adjustColorBrightness(cardColor, cardBrightnessOffset);
+    final containerHighest = adjustColorBrightness(cardColor, cardBrightnessOffset * 2);
+
     final colorScheme = isDark
         ? ColorScheme.dark(
-            primary: accentColor,
-            primaryContainer: accentColor.withValues(alpha: 0.3),
-            secondary: accentColor.withValues(alpha: 0.7),
-            secondaryContainer: accentColor.withValues(alpha: 0.2),
-            tertiary: const Color(0xFFFF4B7D),
-            tertiaryContainer: const Color(0xFFFF4D7E),
-            surface: const Color(0xFF131315),
-            surfaceContainer: const Color(0xFF201F21),
-            surfaceContainerHigh: const Color(0xFF2A2A2C),
-            surfaceContainerHighest: const Color(0xFF353437),
-            onPrimary: isDark ? Colors.black : Colors.white,
-            onSecondary: isDark ? Colors.black : Colors.white,
+            primary: primaryColor,
+            primaryContainer: primaryColor.withValues(alpha: 0.25),
+            secondary: secondaryColor,
+            secondaryContainer: secondaryColor.withValues(alpha: 0.15),
+            tertiary: accentColor,
+            tertiaryContainer: accentColor.withValues(alpha: 0.2),
+            surface: surfaceColor,
+            surfaceContainer: cardColor,
+            surfaceContainerHigh: containerHigh,
+            surfaceContainerHighest: containerHighest,
+            onPrimary: Colors.black,
+            onSecondary: Colors.white,
             onSurface: const Color(0xFFE5E1E4),
             onSurfaceVariant: const Color(0xFFCAC3D8),
             outline: const Color(0xFF948EA1),
             outlineVariant: const Color(0xFF494455),
           )
         : ColorScheme.light(
-            primary: accentColor,
-            primaryContainer: accentColor.withValues(alpha: 0.2),
-            secondary: accentColor.withValues(alpha: 0.7),
-            secondaryContainer: accentColor.withValues(alpha: 0.1),
-            tertiary: const Color(0xFFFF4B7D),
-            tertiaryContainer: const Color(0xFFFF4D7E),
-            surface: const Color(0xFFF5F5F7),
-            surfaceContainer: const Color(0xFFEAEAEF),
-            surfaceContainerHigh: const Color(0xFFDFDFE5),
-            surfaceContainerHighest: const Color(0xFFD4D4DC),
+            primary: primaryColor,
+            primaryContainer: primaryColor.withValues(alpha: 0.15),
+            secondary: secondaryColor,
+            secondaryContainer: secondaryColor.withValues(alpha: 0.1),
+            tertiary: accentColor,
+            tertiaryContainer: accentColor.withValues(alpha: 0.15),
+            surface: surfaceColor,
+            surfaceContainer: cardColor,
+            surfaceContainerHigh: containerHigh,
+            surfaceContainerHighest: containerHighest,
             onPrimary: Colors.white,
             onSecondary: Colors.white,
             onSurface: const Color(0xFF1C1B1F),
@@ -52,7 +70,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: isDark ? Brightness.dark : Brightness.light,
       scaffoldBackgroundColor: Colors.transparent, // Allow glowing/scaffold background to show through
-      primaryColor: accentColor,
+      primaryColor: primaryColor,
       colorScheme: colorScheme,
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -67,11 +85,12 @@ class AppTheme {
         ),
       ),
       sliderTheme: SliderThemeData(
-        activeTrackColor: accentColor,
+        activeTrackColor: primaryColor,
         inactiveTrackColor: colorScheme.outlineVariant,
-        thumbColor: accentColor,
+        thumbColor: primaryColor,
         trackHeight: 4.0,
       ),
     );
   }
 }
+

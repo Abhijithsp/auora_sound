@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/glassmorphic_container.dart';
+import '../../../../core/theme/theme_presets.dart';
 import '../bloc/settings_cubit.dart';
 import '../bloc/settings_state.dart';
 import '../../../music_library/presentation/bloc/library_cubit.dart';
@@ -28,14 +29,6 @@ class SettingsPage extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final textTheme = theme.textTheme;
-
-    final List<Map<String, dynamic>> accentColors = [
-      {'name': 'Lavender', 'color': const Color(0xFF7C4DFF)},
-      {'name': 'Fluid Blue', 'color': const Color(0xFF3E82F7)},
-      {'name': 'Aura Pink', 'color': const Color(0xFFFF4B7D)},
-      {'name': 'Emerald', 'color': const Color(0xFF00C853)},
-      {'name': 'Amber', 'color': const Color(0xFFFFAB00)},
-    ];
 
     final List<Map<String, dynamic>> appIcons = [
       {
@@ -136,6 +129,12 @@ class SettingsPage extends StatelessWidget {
                 delegate: SliverChildListDelegate([
                   _buildSectionHeader(context, 'App Customization'),
 
+                  // Theme Preview Card
+                  _buildThemePreviewCard(context, state),
+
+                  // Theme Preset Selector Grid
+                  _buildThemePresetSelector(context, state, settingsCubit),
+
                   // Theme Mode Selector
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
@@ -172,9 +171,9 @@ class SettingsPage extends StatelessWidget {
                                     ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
                                     ButtonSegment(value: ThemeMode.system, label: Text('System')),
                                   ],
-                                  selected: {state.themeMode},
+                                  selected: {state.previewThemeMode},
                                   onSelectionChanged: (selected) {
-                                    settingsCubit.updateThemeMode(selected.first);
+                                    settingsCubit.setPreviewTheme(state.previewPresetName, selected.first);
                                   },
                                   style: SegmentedButton.styleFrom(
                                     selectedBackgroundColor: colors.primaryContainer,
@@ -189,63 +188,8 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
 
-                  // Accent Color Selector
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                    child: GlassmorphicContainer(
-                      borderRadius: BorderRadius.circular(16),
-                      padding: const EdgeInsets.all(16),
-                      borderOpacity: 0.08,
-                      backgroundOpacity: 0.04,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.palette_rounded, color: colors.primary),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Accent Color', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                    Text('Select your primary signature accent color', style: textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant)),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            height: 48,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: accentColors.length,
-                              itemBuilder: (context, index) {
-                                final colorItem = accentColors[index];
-                                final Color col = colorItem['color'] as Color;
-                                final isSelected = state.accentColor.toARGB32() == col.toARGB32();
-
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                  child: GestureDetector(
-                                    onTap: () => settingsCubit.updateAccentColor(col),
-                                    child: CircleAvatar(
-                                      backgroundColor: col,
-                                      radius: 20,
-                                      child: isSelected
-                                          ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
-                                          : null,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  // Theme Apply Actions
+                  _buildApplyThemeActions(context, state, settingsCubit),
 
                   // App Icon Selector
                   Container(
@@ -578,6 +522,334 @@ class SettingsPage extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildThemePreviewCard(BuildContext context, SettingsState state) {
+    final activeTheme = Theme.of(context);
+    final isPreviewDark = state.previewThemeMode == ThemeMode.system
+        ? (MediaQuery.of(context).platformBrightness == Brightness.dark)
+        : (state.previewThemeMode == ThemeMode.dark);
+        
+    final previewPreset = AppThemePresets.getByName(state.previewPresetName);
+    
+    final primary = previewPreset.primary;
+    final accent = previewPreset.accent;
+    final background = isPreviewDark ? previewPreset.backgroundDark : previewPreset.backgroundLight;
+    final card = isPreviewDark ? previewPreset.cardDark : previewPreset.cardLight;
+    final onSurface = isPreviewDark ? const Color(0xFFE5E1E4) : const Color(0xFF1C1B1F);
+    final onSurfaceVariant = isPreviewDark ? const Color(0xFFCAC3D8) : const Color(0xFF49454F);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
+            child: Text(
+              'Live Preview',
+              style: activeTheme.textTheme.labelMedium?.copyWith(
+                color: activeTheme.colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: primary.withValues(alpha: 0.2), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: primary.withValues(alpha: 0.1),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                )
+              ],
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Aura Sound',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                        color: primary,
+                      ),
+                    ),
+                    Icon(Icons.more_horiz_rounded, color: onSurfaceVariant, size: 18),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: card,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          gradient: LinearGradient(
+                            colors: [primary, accent],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.music_note_rounded, color: Colors.white, size: 18),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Neon Symphony',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: onSurface,
+                              ),
+                              maxLines: 1,
+                            ),
+                            Text(
+                              'Aura Sound Collective',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: onSurfaceVariant,
+                              ),
+                              maxLines: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.skip_previous_rounded, color: onSurfaceVariant, size: 22),
+                      const SizedBox(width: 6),
+                      CircleAvatar(
+                        radius: 15,
+                        backgroundColor: primary,
+                        child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 18),
+                      ),
+                      const SizedBox(width: 6),
+                      Icon(Icons.skip_next_rounded, color: onSurfaceVariant, size: 22),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Text('1:24', style: TextStyle(fontSize: 9, color: onSurfaceVariant)),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Stack(
+                          children: [
+                            Container(
+                              height: 3,
+                              decoration: BoxDecoration(
+                                color: onSurfaceVariant.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(1.5),
+                              ),
+                            ),
+                            FractionallySizedBox(
+                              widthFactor: 0.4,
+                              child: Container(
+                                height: 3,
+                                decoration: BoxDecoration(
+                                  color: primary,
+                                  borderRadius: BorderRadius.circular(1.5),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Text('3:45', style: TextStyle(fontSize: 9, color: onSurfaceVariant)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemePresetSelector(BuildContext context, SettingsState state, SettingsCubit settingsCubit) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      child: GlassmorphicContainer(
+        borderRadius: BorderRadius.circular(16),
+        padding: const EdgeInsets.all(16),
+        borderOpacity: 0.08,
+        backgroundOpacity: 0.04,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.palette_rounded, color: colors.primary),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Theme Preset', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      Text('Select your primary color scheme preset', style: textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 2.1,
+              ),
+              itemCount: AppThemePresets.presets.length,
+              itemBuilder: (context, index) {
+                final preset = AppThemePresets.presets[index];
+                final isSelected = state.previewPresetName == preset.name;
+
+                return GestureDetector(
+                  onTap: () {
+                    settingsCubit.setPreviewTheme(preset.name, state.previewThemeMode);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected ? colors.primaryContainer.withValues(alpha: 0.25) : colors.surfaceContainerLow.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isSelected ? colors.primary : colors.outlineVariant.withValues(alpha: 0.15),
+                        width: isSelected ? 2.0 : 1.0,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [preset.primary, preset.secondary, preset.accent],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                          child: isSelected
+                              ? const Center(
+                                  child: Icon(
+                                    Icons.check_rounded,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
+                                )
+                              : null,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            preset.name,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              color: isSelected ? colors.primary : colors.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildApplyThemeActions(BuildContext context, SettingsState state, SettingsCubit settingsCubit) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final hasChanges = state.previewPresetName != state.themePresetName || state.previewThemeMode != state.themeMode;
+
+    if (!hasChanges) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () {
+                settingsCubit.resetPreviewToApplied();
+              },
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: BorderSide(color: colors.primary.withValues(alpha: 0.5)),
+              ),
+              child: Text(
+                'Cancel',
+                style: TextStyle(fontWeight: FontWeight.bold, color: colors.primary),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: FilledButton(
+              onPressed: () async {
+                await settingsCubit.applyTheme();
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Theme applied successfully!'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: colors.primary,
+                foregroundColor: colors.onPrimary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: const Text(
+                'Apply Theme',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

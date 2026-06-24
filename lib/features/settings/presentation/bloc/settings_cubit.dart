@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dynamic_icon_plus/flutter_dynamic_icon_plus.dart';
+import '../../../../core/theme/theme_presets.dart';
 import 'settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {
@@ -18,8 +19,30 @@ class SettingsCubit extends Cubit<SettingsState> {
       orElse: () => ThemeMode.dark,
     );
 
-    final colorVal = _prefs.getInt('accentColor') ?? 0xFF7C4DFF;
-    final accentColor = Color(colorVal);
+    // Map legacy color value or stored preset name
+    final String storedPresetName = _prefs.getString('themePresetName') ?? '';
+    String themePresetName = 'Purple Night';
+    if (storedPresetName.isNotEmpty) {
+      themePresetName = storedPresetName;
+    } else {
+      final colorVal = _prefs.getInt('accentColor');
+      if (colorVal != null) {
+        if (colorVal == 0xFF7C4DFF) {
+          themePresetName = 'Purple Night';
+        } else if (colorVal == 0xFF3E82F7) {
+          themePresetName = 'Ocean Blue';
+        } else if (colorVal == 0xFFFF4B7D) {
+          themePresetName = 'Rose Pink';
+        } else if (colorVal == 0xFF00C853) {
+          themePresetName = 'Emerald Green';
+        } else if (colorVal == 0xFFFFAB00) {
+          themePresetName = 'Gold';
+        }
+      }
+    }
+
+    final preset = AppThemePresets.getByName(themePresetName);
+    final accentColor = preset.primary;
 
     final viewPref = _prefs.getString('viewPreference') ?? 'list';
     final startupScreen = _prefs.getString('defaultStartupScreen') ?? 'Home';
@@ -47,6 +70,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     emit(SettingsState(
       themeMode: themeMode,
       accentColor: accentColor,
+      themePresetName: themePresetName,
+      previewPresetName: themePresetName,
+      previewThemeMode: themeMode,
       viewPreference: viewPref,
       defaultStartupScreen: startupScreen,
       visibleTabs: visibleTabs,
@@ -56,9 +82,40 @@ class SettingsCubit extends Cubit<SettingsState> {
     ));
   }
 
+  void setPreviewTheme(String presetName, ThemeMode mode) {
+    emit(state.copyWith(
+      previewPresetName: presetName,
+      previewThemeMode: mode,
+    ));
+  }
+
+  void resetPreviewToApplied() {
+    emit(state.copyWith(
+      previewPresetName: state.themePresetName,
+      previewThemeMode: state.themeMode,
+    ));
+  }
+
+  Future<void> applyTheme() async {
+    await _prefs.setString('themeMode', state.previewThemeMode.name);
+    await _prefs.setString('themePresetName', state.previewPresetName);
+    
+    final preset = AppThemePresets.getByName(state.previewPresetName);
+    await _prefs.setInt('accentColor', preset.primary.toARGB32());
+
+    emit(state.copyWith(
+      themeMode: state.previewThemeMode,
+      themePresetName: state.previewPresetName,
+      accentColor: preset.primary,
+    ));
+  }
+
   Future<void> updateThemeMode(ThemeMode mode) async {
     await _prefs.setString('themeMode', mode.name);
-    emit(state.copyWith(themeMode: mode));
+    emit(state.copyWith(
+      themeMode: mode,
+      previewThemeMode: mode,
+    ));
   }
 
   Future<void> updateAccentColor(Color color) async {
@@ -80,7 +137,6 @@ class SettingsCubit extends Cubit<SettingsState> {
     await _prefs.setString('appIcon', iconKey);
     try {
       if (await FlutterDynamicIconPlus.supportsAlternateIcons) {
-        // 'Default' is represented by null to revert to the primary icon
         final String? alternateIconName = iconKey == 'Default' ? null : iconKey;
         await FlutterDynamicIconPlus.setAlternateIconName(iconName: alternateIconName);
       }
@@ -121,3 +177,4 @@ class SettingsCubit extends Cubit<SettingsState> {
     ));
   }
 }
+

@@ -17,21 +17,7 @@ class NowPlayingPage extends StatefulWidget {
 }
 
 class _NowPlayingPageState extends State<NowPlayingPage> {
-  bool _showLyrics = false;
 
-  final List<String> _simulatedLyrics = [
-    "Echoes in the starlight...",
-    "We wander through the neon glow",
-    "Chasing shadows that we used to know",
-    "Every beat is a promise we keep",
-    "Lost in the sound, falling so deep",
-    "Through the static, I hear your name",
-    "Music plays and clears the pain",
-    "Rising up, we touch the sky",
-    "No more questions, no more why",
-    "Just the octave of our hearts",
-    "Where the endless journey starts...",
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -94,92 +80,30 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
 
                     Expanded(
                       child: Center(
-                        child: AnimatedCrossFade(
-                          duration: const Duration(milliseconds: 400),
-                          firstCurve: Curves.easeInOutCubic,
-                          secondCurve: Curves.easeInOutCubic,
-                          crossFadeState: _showLyrics ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-                          firstChild: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Container(
-                                width: size * 0.9,
-                                height: size * 0.9,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: colors.primary.withValues(alpha: 0.1),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: colors.primary.withValues(alpha: 0.2),
-                                      blurRadius: 40,
-                                      spreadRadius: 10,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              ArtworkWidget(
-                                track: currentTrack,
-                                isPlaying: state.isPlaying,
-                                size: size,
-                              ),
-                            ],
-                          ),
-                          secondChild: GlassmorphicContainer(
-                            height: MediaQuery.of(context).size.height * 0.42,
-                            width: double.infinity,
-                            borderRadius: BorderRadius.circular(28),
-                            padding: const EdgeInsets.all(24),
-                            borderOpacity: 0.15,
-                            backgroundOpacity: 0.08,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'LYRICS',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: colors.primary,
-                                        letterSpacing: 1.5,
-                                      ),
-                                    ),
-                                    const Icon(Icons.sync_rounded, size: 16, color: Colors.white38),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                Expanded(
-                                  child: ListView.builder(
-                                    itemCount: _simulatedLyrics.length,
-                                    itemBuilder: (context, index) {
-                                      final isActiveLine = index == 4;
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                        child: Text(
-                                          _simulatedLyrics[index],
-                                          style: TextStyle(
-                                            fontSize: isActiveLine ? 19 : 15,
-                                            fontWeight: isActiveLine ? FontWeight.w800 : FontWeight.w500,
-                                            color: isActiveLine 
-                                                ? Colors.white 
-                                                : Colors.white.withValues(alpha: 0.35),
-                                            shadows: isActiveLine ? [
-                                              Shadow(
-                                                color: colors.primary.withValues(alpha: 0.6),
-                                                blurRadius: 10,
-                                              )
-                                            ] : null,
-                                          ),
-                                        ),
-                                      );
-                                    },
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: size * 0.9,
+                              height: size * 0.9,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: colors.primary.withValues(alpha: 0.1),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: colors.primary.withValues(alpha: 0.2),
+                                    blurRadius: 40,
+                                    spreadRadius: 10,
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
+                            ArtworkWidget(
+                              track: currentTrack,
+                              isPlaying: state.isPlaying,
+                              size: size,
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -309,36 +233,12 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                         ),
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           _buildUtilityButton(
                             icon: Icons.playlist_play_rounded,
-                            label: 'LIST',
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Queue opened'), duration: Duration(seconds: 1)),
-                              );
-                            },
-                          ),
-                          _buildUtilityButton(
-                            icon: Icons.lyrics_rounded,
-                            label: 'LYRICS',
-                            isActive: _showLyrics,
-                            activeColor: colors.primary,
-                            onTap: () {
-                              setState(() {
-                                _showLyrics = !_showLyrics;
-                              });
-                            },
-                          ),
-                          _buildUtilityButton(
-                            icon: Icons.devices_rounded,
-                            label: 'DEVICES',
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Devices list'), duration: Duration(seconds: 1)),
-                              );
-                            },
+                            label: 'QUEUE',
+                            onTap: () => _showQueueBottomSheet(context, state),
                           ),
                         ],
                       ),
@@ -385,6 +285,166 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showQueueBottomSheet(BuildContext context, PlayerState state) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (bottomSheetContext) {
+        final theme = Theme.of(context);
+        final colors = theme.colorScheme;
+
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          maxChildSize: 0.9,
+          minChildSize: 0.4,
+          expand: false,
+          builder: (context, scrollController) {
+            return BlocBuilder<PlayerCubit, PlayerState>(
+              builder: (context, playerState) {
+                final queue = playerState.queue;
+                final current = playerState.currentTrack;
+
+                return Container(
+                  decoration: BoxDecoration(
+                    color: colors.surfaceContainerHigh.withValues(alpha: 0.95),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                    border: Border(
+                      top: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.2)),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: colors.onSurfaceVariant.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Playback Queue',
+                              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              '${queue.length} Songs',
+                              style: theme.textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 12, thickness: 0.5),
+                      Expanded(
+                        child: queue.isEmpty
+                            ? const Center(
+                                child: Text('Queue is empty'),
+                              )
+                            : ListView.builder(
+                                controller: scrollController,
+                                itemCount: queue.length,
+                                itemBuilder: (context, index) {
+                                  final item = queue[index];
+                                  final isActive = current != null && current.id == item.id;
+
+                                  return ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                                    leading: Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        gradient: LinearGradient(
+                                          colors: isActive
+                                              ? [colors.primary, colors.tertiary]
+                                              : [colors.surfaceContainerHighest, colors.surfaceContainerHigh],
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          isActive ? Icons.volume_up_rounded : Icons.music_note_rounded,
+                                          color: isActive ? Colors.white : colors.onSurfaceVariant,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                    title: Text(
+                                      item.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                                        color: isActive ? colors.primary : colors.onSurface,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      item.artist ?? 'Unknown Artist',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: colors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (isActive)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            margin: const EdgeInsets.only(right: 8),
+                                            decoration: BoxDecoration(
+                                              color: colors.primary.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              'NOW PLAYING',
+                                              style: TextStyle(
+                                                fontSize: 8,
+                                                fontWeight: FontWeight.bold,
+                                                color: colors.primary,
+                                              ),
+                                            ),
+                                          ),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                                          color: Colors.redAccent.withValues(alpha: 0.8),
+                                          onPressed: () {
+                                            context.read<PlayerCubit>().removeFromQueue(item.id);
+                                            if (queue.length <= 1) {
+                                              Navigator.pop(bottomSheetContext);
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    onTap: () {
+                                      context.read<PlayerCubit>().skipToQueueItem(index);
+                                    },
+                                  );
+                                },
+                              ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 }

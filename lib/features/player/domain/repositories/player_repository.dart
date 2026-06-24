@@ -14,4 +14,7 @@ abstract class PlayerRepository {
   Future<void> playSong(Song song, List<Song> playlist);
   Future<void> setShuffleMode(bool enabled);
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode);
+  Future<void> skipToQueueItem(int index);
+  Future<void> updateQueue(List<MediaItem> items);
 }
+

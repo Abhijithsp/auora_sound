@@ -74,4 +74,11 @@ class PlayerRepositoryImpl implements PlayerRepository {
 
   @override
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) => _playerController.setRepeatMode(repeatMode);
+
+  @override
+  Future<void> skipToQueueItem(int index) => _playerController.skipToQueueItem(index);
+
+  @override
+  Future<void> updateQueue(List<MediaItem> items) => _playerController.loadPlaylist(items);
 }
+

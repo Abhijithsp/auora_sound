@@ -138,6 +138,14 @@ class PlayerCubit extends Cubit<PlayerState> {
 
   Future<void> seek(Duration position) => playerRepository.seek(position);
 
+  Future<void> skipToQueueItem(int index) => playerRepository.skipToQueueItem(index);
+
+  Future<void> removeFromQueue(String songId) async {
+    final updatedQueue = List<MediaItem>.from(state.queue)..removeWhere((item) => item.id == songId);
+    await playerRepository.updateQueue(updatedQueue);
+    emit(state.copyWith(queue: updatedQueue));
+  }
+
   @override
   Future<void> close() {
     try {

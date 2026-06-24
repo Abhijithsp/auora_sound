@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/services/locator/service_locator.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_presets.dart';
 import 'features/music_library/presentation/bloc/library_cubit.dart';
 import 'features/player/presentation/bloc/player_cubit.dart';
 import 'features/settings/presentation/bloc/settings_cubit.dart';
@@ -36,11 +37,12 @@ class MyApp extends StatelessWidget {
       ],
       child: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, settingsState) {
+          final preset = AppThemePresets.getByName(settingsState.themePresetName);
           return MaterialApp(
             title: 'Aura Sound',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.generateTheme(settingsState.accentColor, false),
-            darkTheme: AppTheme.generateTheme(settingsState.accentColor, true),
+            theme: AppTheme.generateTheme(preset, false),
+            darkTheme: AppTheme.generateTheme(preset, true),
             themeMode: settingsState.themeMode,
             home: const MainShellPage(),
           );
@@ -49,3 +51,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+

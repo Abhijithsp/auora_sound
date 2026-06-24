@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 class SettingsState {
   final ThemeMode themeMode;
   final Color accentColor;
+  final String themePresetName;
+  final String previewPresetName;
+  final ThemeMode previewThemeMode;
   final String viewPreference;
   final String defaultStartupScreen;
   final List<String> visibleTabs;
@@ -13,6 +16,9 @@ class SettingsState {
   const SettingsState({
     this.themeMode = ThemeMode.dark,
     this.accentColor = const Color(0xFF7C4DFF), // Default Sonic Purple
+    this.themePresetName = 'Purple Night',
+    this.previewPresetName = 'Purple Night',
+    this.previewThemeMode = ThemeMode.dark,
     this.viewPreference = 'list',
     this.defaultStartupScreen = 'Home',
     this.visibleTabs = const ['Home', 'Songs', 'Artists', 'Folders', 'Playlists', 'Settings'],
@@ -31,6 +37,9 @@ class SettingsState {
   SettingsState copyWith({
     ThemeMode? themeMode,
     Color? accentColor,
+    String? themePresetName,
+    String? previewPresetName,
+    ThemeMode? previewThemeMode,
     String? viewPreference,
     String? defaultStartupScreen,
     List<String>? visibleTabs,
@@ -41,6 +50,9 @@ class SettingsState {
     return SettingsState(
       themeMode: themeMode ?? this.themeMode,
       accentColor: accentColor ?? this.accentColor,
+      themePresetName: themePresetName ?? this.themePresetName,
+      previewPresetName: previewPresetName ?? this.previewPresetName,
+      previewThemeMode: previewThemeMode ?? this.previewThemeMode,
       viewPreference: viewPreference ?? this.viewPreference,
       defaultStartupScreen: defaultStartupScreen ?? this.defaultStartupScreen,
       visibleTabs: visibleTabs ?? this.visibleTabs,
@@ -50,3 +62,4 @@ class SettingsState {
     );
   }
 }
+

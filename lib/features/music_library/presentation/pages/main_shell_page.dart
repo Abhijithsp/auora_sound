@@ -187,7 +187,7 @@ class _MainShellPageState extends State<MainShellPage> {
                       Positioned(
                         left: 16,
                         right: 16,
-                        bottom: isTablet ? 16 : 96,
+                        bottom: isTablet ? (MediaQuery.of(context).padding.bottom + 8) : 0,
                         child: BlocBuilder<PlayerCubit, PlayerState>(
                           builder: (context, playerState) {
                             if (playerState.currentTrack != null) {
