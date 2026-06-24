@@ -37,7 +37,7 @@ class SettingsPage extends StatelessWidget {
         'bgColor': const Color(0xFF0F0C1B),
         'borderColor': const Color(0xFF7C4DFF),
         'iconColor': Colors.white,
-        'icon': Icons.music_note_rounded,
+        'icon': Icons.headphones_rounded,
         'isGradient': true,
         'gradient': const LinearGradient(
           colors: [Color(0xFF7C4DFF), Color(0xFFFF4B7D)],
@@ -249,7 +249,7 @@ class SettingsPage extends StatelessWidget {
                                               decoration: BoxDecoration(
                                                 color: isGradient ? null : bgColor,
                                                 gradient: isGradient ? gradient : null,
-                                                borderRadius: BorderRadius.circular(14),
+                                                shape: BoxShape.circle,
                                                 border: Border.all(
                                                   color: isSelected ? colors.primary : borderColor.withValues(alpha: 0.5),
                                                   width: isSelected ? 3 : 1.5,

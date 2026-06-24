@@ -10,6 +10,43 @@ A sleek, premium, and feature-rich local music player application built with Flu
 
 ---
 
+## 📸 Screenshots
+
+### 🎵 Core Experience
+<p align="center">
+  <img src="screenshots/1000164504.png" width="30%" alt="Home Screen" />
+  <img src="screenshots/1000164506.png" width="30%" alt="Songs Grid" />
+  <img src="screenshots/1000164515.png" width="30%" alt="Folder Listing" />
+   
+  
+ </p>
+
+ ### 🎉 Playlist& Search
+<p align="center">
+  <img src="screenshots/1000164516.png" width="30%" alt="playlist" />
+  <img src="screenshots/1000164510.png" width="30%" alt="Playlist Lsiting" />
+ <img src="screenshots/1000164517.png" width="30%" alt="Search" />
+</p>
+
+### 🎧 Now Playing & Queue
+<p align="center">
+  <img src="screenshots/1000164507.png" width="30%" alt="Now Playing" />
+  <img src="screenshots/1000164508.png" width="30%" alt="Playback Queue" />
+  <img src="screenshots/1000164509.png" width="30%" alt="Track Options" />
+</p>
+
+### 🎨 Settings & Customization
+<p align="center">
+  <img src="screenshots/1000164511.png" width="30%" alt="Theme Presets" />
+  <img src="screenshots/1000164512.png" width="30%" alt="App Settings" />
+  <img src="screenshots/1000164513.png" width="30%" alt="Tab Management" />
+</p>
+
+
+
+
+---
+
 ## ✨ Features
 
 ### 🎵 Core Audio Playback
@@ -58,7 +95,7 @@ A sleek, premium, and feature-rich local music player application built with Flu
   - `audio_service` (System integration)
   - `flutter_volume_controller` (Volume control)
 - **Metadata Querying:** `on_audio_query` (Scanning local device audio assets)
-- **Local Storage:** `shared_preferences` (Persistence)
+- **Local Storage:** `shared_preferences` 
 
 ---
 
