@@ -1,4 +1,4 @@
-# Aura Sound
+# Aura Sound (Beta)
 
 A sleek, premium, and feature-rich local music player application built with Flutter, designed exclusively for iOS and Android. It scans, indexes, and plays local audio files with a modern UI, dynamic app icon switcher, and full background playback controls.
 
