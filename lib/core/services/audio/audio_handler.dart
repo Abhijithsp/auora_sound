@@ -27,6 +27,9 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         mediaItem.add(queue.value[index]);
       }
     });
+
+    // Broadcast initial playback state
+    _updateState();
   }
 
   void _updateState() {
