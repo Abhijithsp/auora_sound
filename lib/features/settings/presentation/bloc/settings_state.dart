@@ -11,7 +11,6 @@ class SettingsState {
   final List<String> visibleTabs;
   final List<String> allTabs;
   final Map<String, bool> tabVisibility;
-  final String appIcon;
 
   const SettingsState({
     this.themeMode = ThemeMode.dark,
@@ -31,7 +30,6 @@ class SettingsState {
       'Albums': false,
       'Favorites': false,
     },
-    this.appIcon = 'Default',
   });
 
   SettingsState copyWith({
@@ -45,7 +43,6 @@ class SettingsState {
     List<String>? visibleTabs,
     List<String>? allTabs,
     Map<String, bool>? tabVisibility,
-    String? appIcon,
   }) {
     return SettingsState(
       themeMode: themeMode ?? this.themeMode,
@@ -58,7 +55,6 @@ class SettingsState {
       visibleTabs: visibleTabs ?? this.visibleTabs,
       allTabs: allTabs ?? this.allTabs,
       tabVisibility: tabVisibility ?? this.tabVisibility,
-      appIcon: appIcon ?? this.appIcon,
     );
   }
 }

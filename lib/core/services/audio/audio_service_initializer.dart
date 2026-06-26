@@ -15,7 +15,7 @@ class AudioServiceInitializer {
         androidNotificationChannelName: AudioConstants.notificationChannelName,
         androidNotificationOngoing: true,
         androidShowNotificationBadge: true,
-        androidNotificationIcon: 'drawable/ic_stat_music',
+        androidNotificationIcon: 'mipmap/ic_launcher',
       ),
     );
   }
