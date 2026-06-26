@@ -1,5 +1,4 @@
 import 'package:audio_service/audio_service.dart';
-import 'audio_handler.dart';
 
 abstract class PlayerController {
   Stream<PlaybackState> get playbackState;
@@ -64,22 +63,10 @@ class PlayerControllerImpl implements PlayerController {
   Future<void> skipToQueueItem(int index) => _audioHandler.skipToQueueItem(index);
 
   @override
-  Future<void> loadPlaylist(List<MediaItem> items) {
-    final handler = _audioHandler;
-    if (handler is MyAudioHandler) {
-      return handler.loadPlaylist(items);
-    }
-    return Future.value();
-  }
+  Future<void> loadPlaylist(List<MediaItem> items) => _audioHandler.updateQueue(items);
 
   @override
-  Future<void> playMediaItem(MediaItem item) {
-    final handler = _audioHandler;
-    if (handler is MyAudioHandler) {
-      return handler.playMediaItem(item);
-    }
-    return Future.value();
-  }
+  Future<void> playMediaItem(MediaItem item) => _audioHandler.playMediaItem(item);
 
   @override
   Future<void> setShuffleMode(bool enabled) => _audioHandler.setShuffleMode(
