@@ -11,11 +11,13 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   void _init() {
     // Listen to players state changes to update the audio service state
     _player.playbackEventStream.listen((_) => _updateState());
+    _player.playerStateStream.listen((_) => _updateState()); // Crucial for play/pause and processing state changes
     _player.shuffleModeEnabledStream.listen((_) => _updateState());
     _player.loopModeStream.listen((_) => _updateState());
     
     // Automatically transition to next song on complete
     _player.processingStateStream.listen((state) {
+      _updateState(); // Update state on processing changes
       if (state == ProcessingState.completed) {
         skipToNext();
       }
