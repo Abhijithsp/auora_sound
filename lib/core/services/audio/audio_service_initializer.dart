@@ -13,9 +13,10 @@ class AudioServiceInitializer {
       config: const AudioServiceConfig(
         androidNotificationChannelId: AudioConstants.notificationChannelId,
         androidNotificationChannelName: AudioConstants.notificationChannelName,
-        androidNotificationOngoing: true,
+        androidNotificationOngoing: false,
+        androidStopForegroundOnPause: true,
         androidShowNotificationBadge: true,
-        androidNotificationIcon: 'mipmap/ic_launcher',
+        androidNotificationIcon: 'drawable/ic_stat_music',
       ),
     );
   }
