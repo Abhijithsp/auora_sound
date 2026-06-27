@@ -9,33 +9,53 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   void _init() {
-    // Listen to players state changes to update the audio service state
-    _player.playbackEventStream.listen((_) => _updateState());
-    _player.playerStateStream.listen((_) => _updateState()); // Crucial for play/pause and processing state changes
-    _player.shuffleModeEnabledStream.listen((_) => _updateState());
-    _player.loopModeStream.listen((_) => _updateState());
-    
-    // Automatically transition to next song on complete
+    // ── 1. Sync just_audio sequence → audio_service queue + mediaItem ────────
+    // sequenceStateStream is the authoritative source of truth for the current
+    // playlist and track. Piping it to audio_service drives the OS notification.
+    _player.sequenceStateStream.listen((state) {
+      final items = state.effectiveSequence
+          .map((src) => src.tag as MediaItem)
+          .toList();
+      queue.add(items);
+
+      // currentIndex is nullable in just_audio 0.10+
+      final idx = state.currentIndex;
+      if (idx != null && idx >= 0 && idx < items.length) {
+        mediaItem.add(items[idx]);
+      }
+    });
+
+    // ── 2. Forward all player state changes → OS notification ─────────────
+    _player.playbackEventStream.listen((_) => _broadcastState());
+    _player.playerStateStream.listen((_) => _broadcastState());
+    _player.shuffleModeEnabledStream.listen((_) => _broadcastState());
+    _player.loopModeStream.listen((_) => _broadcastState());
+
+    // Auto-advance on track completion
     _player.processingStateStream.listen((state) {
-      _updateState(); // Update state on processing changes
+      _broadcastState();
       if (state == ProcessingState.completed) {
         skipToNext();
       }
     });
 
-    // Listen to current index changes to update current mediaItem
-    _player.currentIndexStream.listen((index) {
-      if (index != null && index >= 0 && index < queue.value.length) {
-        mediaItem.add(queue.value[index]);
-      }
-    });
-
-    // Broadcast initial playback state
-    _updateState();
+    // Emit an initial idle state immediately
+    _broadcastState();
   }
 
-  void _updateState() {
+  /// Publishes the current just_audio state to audio_service so the OS
+  /// notification and lock-screen media controls stay in sync.
+  void _broadcastState() {
     final playing = _player.playing;
+    final processingState = {
+      ProcessingState.idle: AudioProcessingState.idle,
+      ProcessingState.loading: AudioProcessingState.loading,
+      ProcessingState.buffering: AudioProcessingState.buffering,
+      ProcessingState.ready: AudioProcessingState.ready,
+      ProcessingState.completed: AudioProcessingState.completed,
+    }[_player.processingState] ??
+        AudioProcessingState.idle;
+
     playbackState.add(PlaybackState(
       controls: [
         MediaControl.skipToPrevious,
@@ -50,14 +70,9 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         MediaAction.setShuffleMode,
         MediaAction.setRepeatMode,
       },
+      // Indices into controls[] visible in compact notification view
       androidCompactActionIndices: const [0, 1, 3],
-      processingState: const {
-        ProcessingState.idle: AudioProcessingState.idle,
-        ProcessingState.loading: AudioProcessingState.loading,
-        ProcessingState.buffering: AudioProcessingState.buffering,
-        ProcessingState.ready: AudioProcessingState.ready,
-        ProcessingState.completed: AudioProcessingState.completed,
-      }[_player.processingState] ?? AudioProcessingState.idle,
+      processingState: processingState,
       playing: playing,
       updatePosition: _player.position,
       bufferedPosition: _player.bufferedPosition,
@@ -70,22 +85,21 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         LoopMode.off: AudioServiceRepeatMode.none,
         LoopMode.one: AudioServiceRepeatMode.one,
         LoopMode.all: AudioServiceRepeatMode.all,
-      }[_player.loopMode] ?? AudioServiceRepeatMode.none,
+      }[_player.loopMode] ??
+          AudioServiceRepeatMode.none,
     ));
   }
 
+  /// Loads a fresh playlist. MediaItems are stored in AudioSource.tag so
+  /// sequenceStateStream can automatically push them back to audio_service.
   Future<void> loadPlaylist(List<MediaItem> items) async {
-    queue.add(items);
-    
-    final audioSources = items.map((item) {
-      return AudioSource.uri(
-        Uri.parse(item.id),
-        tag: item,
-      );
-    }).toList();
+    final sources = items
+        .map((item) => AudioSource.uri(Uri.parse(item.id), tag: item))
+        .toList();
 
-    // Set the playlist of audio sources
-    await _player.setAudioSources(audioSources);
+    // setAudioSources is the modern API in just_audio 0.10+
+    await _player.setAudioSources(sources);
+    queue.add(items);
   }
 
   @override
@@ -93,17 +107,21 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> playMediaItem(MediaItem mediaItem) async {
+    // Push metadata immediately so the notification renders during load
     this.mediaItem.add(mediaItem);
-    final index = queue.value.indexWhere((element) => element.id == mediaItem.id);
+
+    final index = queue.value.indexWhere((q) => q.id == mediaItem.id);
     if (index != -1) {
       await skipToQueueItem(index);
     } else {
-      final updatedQueue = List<MediaItem>.from(queue.value)..add(mediaItem);
-      await loadPlaylist(updatedQueue);
-      await skipToQueueItem(updatedQueue.length - 1);
+      final updated = List<MediaItem>.from(queue.value)..add(mediaItem);
+      await loadPlaylist(updated);
+      await skipToQueueItem(updated.length - 1);
     }
     await play();
   }
+
+  // ── Passthrough controls ──────────────────────────────────────────────────
 
   @override
   Future<void> play() => _player.play();
@@ -148,6 +166,6 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> stop() async {
     await _player.stop();
-    await playbackState.firstWhere((state) => state.processingState == AudioProcessingState.idle);
+    await super.stop();
   }
 }

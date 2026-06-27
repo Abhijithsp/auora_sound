@@ -5,6 +5,8 @@ import 'audio_handler.dart';
 
 class AudioServiceInitializer {
   static Future<AudioHandler> init() async {
+    // Configure the audio session for music playback (handles audio focus,
+    // interruptions from calls, etc.)
     final session = await AudioSession.instance;
     await session.configure(const AudioSessionConfiguration.music());
 
@@ -13,9 +15,13 @@ class AudioServiceInitializer {
       config: const AudioServiceConfig(
         androidNotificationChannelId: AudioConstants.notificationChannelId,
         androidNotificationChannelName: AudioConstants.notificationChannelName,
-        androidNotificationOngoing: false,
+        // Keep notification alive – critical for Nothing Phone and other aggressive
+        // battery OEMs. androidNotificationOngoing:true + androidStopForegroundOnPause:true
+        // is the only valid combination that keeps the notification persistent.
+        androidNotificationOngoing: true,
         androidStopForegroundOnPause: true,
         androidShowNotificationBadge: true,
+        // Small 96×96 monochrome icon – must be white on transparent
         androidNotificationIcon: 'drawable/ic_stat_music',
       ),
     );
