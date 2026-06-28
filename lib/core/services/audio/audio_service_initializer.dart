@@ -21,8 +21,8 @@ class AudioServiceInitializer {
         androidNotificationOngoing: false,
         androidStopForegroundOnPause: false,
         androidShowNotificationBadge: true,
-        // Small 96×96 monochrome icon – must be white on transparent
-        androidNotificationIcon: 'drawable/ic_stat_music',
+        // Small monochrome or default verified launcher icon
+        androidNotificationIcon: 'mipmap/ic_launcher',
       ),
     );
   }

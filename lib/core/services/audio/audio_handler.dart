@@ -9,32 +9,23 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   void _init() {
-    // ── 1. Sync just_audio sequence → audio_service queue + mediaItem ────────
-    // sequenceStateStream is the authoritative source of truth for the current
-    // playlist and track. Piping it to audio_service drives the OS notification.
-    _player.sequenceStateStream.listen((state) {
-      try {
-        final items = state.effectiveSequence
-            .map((src) => src.tag)
-            .whereType<MediaItem>()
-            .toList();
-        queue.add(items);
-
-        // currentIndex is nullable in just_audio 0.10+
-        final idx = state.currentIndex;
-        if (idx != null && idx >= 0 && idx < items.length) {
-          mediaItem.add(items[idx]);
-        }
-      } catch (_) {}
+    // ── 1. Sync current index to mediaItem ──────────────────────────────────
+    // Listen to current index changes on the player and broadcast the
+    // corresponding MediaItem from the queue. This is simple, reliable, and
+    // works perfectly even when shuffle mode is enabled.
+    _player.currentIndexStream.listen((index) {
+      if (index != null && index >= 0 && index < queue.value.length) {
+        mediaItem.add(queue.value[index]);
+      }
     });
 
-    // ── 2. Forward all player state changes → OS notification ─────────────
+    // ── 2. Forward player state changes to audio_service ───────────────────
     _player.playbackEventStream.listen((_) => _broadcastState());
     _player.playerStateStream.listen((_) => _broadcastState());
     _player.shuffleModeEnabledStream.listen((_) => _broadcastState());
     _player.loopModeStream.listen((_) => _broadcastState());
 
-    // Auto-advance on track completion
+    // Auto-advance on completion
     _player.processingStateStream.listen((state) {
       _broadcastState();
       if (state == ProcessingState.completed) {
@@ -42,12 +33,10 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       }
     });
 
-    // Emit an initial idle state immediately
     _broadcastState();
   }
 
-  /// Publishes the current just_audio state to audio_service so the OS
-  /// notification and lock-screen media controls stay in sync.
+  /// Broadcasts the player state to audio_service to keep the OS notification in sync.
   void _broadcastState() {
     final playing = _player.playing;
     final processingState = {
@@ -72,8 +61,12 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         MediaAction.seekBackward,
         MediaAction.setShuffleMode,
         MediaAction.setRepeatMode,
+        MediaAction.play,
+        MediaAction.pause,
+        MediaAction.skipToNext,
+        MediaAction.skipToPrevious,
+        MediaAction.stop,
       },
-      // Indices into controls[] visible in compact notification view
       androidCompactActionIndices: const [0, 1, 3],
       processingState: processingState,
       playing: playing,
@@ -93,8 +86,7 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     ));
   }
 
-  /// Loads a fresh playlist. MediaItems are stored in AudioSource.tag so
-  /// sequenceStateStream can automatically push them back to audio_service.
+  /// Loads the playlist into the player.
   Future<void> loadPlaylist(List<MediaItem> items) async {
     final sources = items
         .map((item) => AudioSource.uri(Uri.parse(item.id), tag: item))
@@ -110,7 +102,6 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> playMediaItem(MediaItem mediaItem) async {
-    // Push metadata immediately so the notification renders during load
     this.mediaItem.add(mediaItem);
 
     final index = queue.value.indexWhere((q) => q.id == mediaItem.id);
