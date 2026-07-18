@@ -15,7 +15,6 @@ A sleek, premium, and feature-rich local music player application built with Flu
 ### 🎵 Core Experience
 <p align="center">
   <img src="screenshots/1000164504.png" width="30%" alt="Home Screen" />
-  <img src="screenshots/1000164506.png" width="30%" alt="Songs Grid" />
   <img src="screenshots/1000164515.png" width="30%" alt="Folder Listing" />
    
   
@@ -38,7 +37,6 @@ A sleek, premium, and feature-rich local music player application built with Flu
 ### 🎨 Settings & Customization
 <p align="center">
   <img src="screenshots/1000164511.png" width="30%" alt="Theme Presets" />
-  <img src="screenshots/1000164512.png" width="30%" alt="App Settings" />
   <img src="screenshots/1000164513.png" width="30%" alt="Tab Management" />
 </p>
 
