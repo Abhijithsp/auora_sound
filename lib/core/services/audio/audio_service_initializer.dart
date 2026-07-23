@@ -15,14 +15,16 @@ class AudioServiceInitializer {
       config: const AudioServiceConfig(
         androidNotificationChannelId: AudioConstants.notificationChannelId,
         androidNotificationChannelName: AudioConstants.notificationChannelName,
+        androidNotificationChannelDescription: 'Background audio playback',
         // ongoing=false: lets Android treat this as a proper media notification
         // (required for Android 14+ media player panel on lock screen).
         // stopForegroundOnPause=false: keeps the service in foreground even
         // when paused, so lock screen controls remain visible.
-        androidNotificationOngoing: false,
-        androidStopForegroundOnPause: false,
+        androidNotificationOngoing: true,
+        androidStopForegroundOnPause: true,
         androidShowNotificationBadge: true,
         androidNotificationClickStartsActivity: true,
+        androidNotificationIcon: 'mipmap/ic_launcher',
       ),
     );
   }
