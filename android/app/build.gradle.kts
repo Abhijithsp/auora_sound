@@ -28,7 +28,7 @@ android {
         applicationId = "com.example.flutter_music.flutter_music"
         // Explicitly set up-to-date minimum and target Android SDK versions
         minSdk = flutter.minSdkVersion // Required by audio service packages
-        targetSdk = 34 // Android 14 target requirements
+        targetSdk = 36 // Android 16 (API 36)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
