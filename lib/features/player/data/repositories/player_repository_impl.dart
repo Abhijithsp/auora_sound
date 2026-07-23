@@ -39,10 +39,10 @@ class PlayerRepositoryImpl implements PlayerRepository {
       return MediaItem(
         id: s.uri,
         album: s.album,
-        title: s.title,
-        artist: s.artist,
+        title: s.title.isNotEmpty ? s.title : 'Unknown Title',
+        artist: s.artist.isNotEmpty ? s.artist : 'Unknown Artist',
         duration: s.duration,
-        artUri: s.artworkUri != null ? Uri.parse(s.artworkUri!) : null,
+        artUri: s.artworkUri != null && s.artworkUri!.isNotEmpty ? Uri.parse(s.artworkUri!) : null,
       );
     }).toList();
 

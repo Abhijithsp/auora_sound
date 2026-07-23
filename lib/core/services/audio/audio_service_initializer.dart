@@ -23,7 +23,6 @@ class AudioServiceInitializer {
         androidStopForegroundOnPause: false,
         androidShowNotificationBadge: true,
         androidNotificationClickStartsActivity: true,
-        androidNotificationIcon: 'drawable/ic_stat_music',
       ),
     );
   }
