@@ -18,8 +18,8 @@ class AudioServiceInitializer {
         // Keep notification alive – critical for Nothing Phone and other aggressive
         // battery OEMs. androidNotificationOngoing:false + androidStopForegroundOnPause:false
         // is a valid combination that keeps the service in the foreground even when paused.
-        androidNotificationOngoing: false,
-        androidStopForegroundOnPause: false,
+        androidNotificationOngoing: true,
+        androidStopForegroundOnPause: true,
         androidShowNotificationBadge: true,
         androidNotificationClickStartsActivity: true,
         // Small monochrome or default verified launcher icon

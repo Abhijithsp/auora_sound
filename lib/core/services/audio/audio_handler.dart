@@ -21,6 +21,7 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           mediaItem.add(item);
         }
       }
+      _broadcastState();
     });
 
     // ── 2. Forward player state changes to audio_service ───────────────────
@@ -56,8 +57,8 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       controls: [
         MediaControl.skipToPrevious,
         if (playing) MediaControl.pause else MediaControl.play,
-        MediaControl.stop,
         MediaControl.skipToNext,
+        MediaControl.stop,
       ],
       systemActions: const {
         MediaAction.seek,
@@ -67,11 +68,14 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         MediaAction.setRepeatMode,
         MediaAction.play,
         MediaAction.pause,
+        MediaAction.playPause,
         MediaAction.skipToNext,
         MediaAction.skipToPrevious,
         MediaAction.stop,
+        MediaAction.fastForward,
+        MediaAction.rewind,
       },
-      androidCompactActionIndices: const [0, 1, 3],
+      androidCompactActionIndices: const [0, 1, 2],
       processingState: processingState,
       playing: playing,
       updatePosition: _player.position,
@@ -134,10 +138,43 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> seek(Duration position) => _player.seek(position);
 
   @override
-  Future<void> skipToNext() => _player.seekToNext();
+  Future<void> skipToNext() async {
+    if (_player.hasNext) {
+      await _player.seekToNext();
+    } else if (queue.value.isNotEmpty) {
+      await skipToQueueItem(0);
+    }
+  }
 
   @override
-  Future<void> skipToPrevious() => _player.seekToPrevious();
+  Future<void> skipToPrevious() async {
+    if (_player.position > const Duration(seconds: 3)) {
+      await _player.seek(Duration.zero);
+    } else if (_player.hasPrevious) {
+      await _player.seekToPrevious();
+    } else {
+      await _player.seek(Duration.zero);
+    }
+  }
+
+  @override
+  Future<void> click([MediaButton button = MediaButton.media]) async {
+    switch (button) {
+      case MediaButton.media:
+        if (_player.playing) {
+          await pause();
+        } else {
+          await play();
+        }
+        break;
+      case MediaButton.next:
+        await skipToNext();
+        break;
+      case MediaButton.previous:
+        await skipToPrevious();
+        break;
+    }
+  }
 
   @override
   Future<void> skipToQueueItem(int index) async {
