@@ -1,5 +1,5 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:permission_handler/permission_handler.dart';
+
 
 abstract class PlayerController {
   Stream<PlaybackState> get playbackState;
@@ -46,12 +46,7 @@ class PlayerControllerImpl implements PlayerController {
   List<MediaItem> get currentQueue => _audioHandler.queue.value;
 
   @override
-  Future<void> play() async {
-    try {
-      await Permission.notification.request();
-    } catch (_) {}
-    return _audioHandler.play();
-  }
+  Future<void> play() => _audioHandler.play();
 
   @override
   Future<void> pause() => _audioHandler.pause();
@@ -72,12 +67,7 @@ class PlayerControllerImpl implements PlayerController {
   Future<void> loadPlaylist(List<MediaItem> items) => _audioHandler.updateQueue(items);
 
   @override
-  Future<void> playMediaItem(MediaItem item) async {
-    try {
-      await Permission.notification.request();
-    } catch (_) {}
-    return _audioHandler.playMediaItem(item);
-  }
+  Future<void> playMediaItem(MediaItem item) => _audioHandler.playMediaItem(item);
 
   @override
   Future<void> setShuffleMode(bool enabled) => _audioHandler.setShuffleMode(

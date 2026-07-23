@@ -15,16 +15,17 @@ class AudioServiceInitializer {
       config: const AudioServiceConfig(
         androidNotificationChannelId: AudioConstants.notificationChannelId,
         androidNotificationChannelName: AudioConstants.notificationChannelName,
-        // Keep notification alive – critical for Nothing Phone and other aggressive
-        // battery OEMs. androidNotificationOngoing:false + androidStopForegroundOnPause:false
-        // is a valid combination that keeps the service in the foreground even when paused.
-        androidNotificationOngoing: true,
-        androidStopForegroundOnPause: true,
+        // ongoing=false: lets Android treat this as a proper media notification
+        // (required for Android 14+ media player panel on lock screen).
+        // stopForegroundOnPause=false: keeps the service in foreground even
+        // when paused, so lock screen controls remain visible.
+        androidNotificationOngoing: false,
+        androidStopForegroundOnPause: false,
         androidShowNotificationBadge: true,
         androidNotificationClickStartsActivity: true,
-        // Small monochrome or default verified launcher icon
         androidNotificationIcon: 'drawable/ic_stat_music',
       ),
     );
   }
 }
+
