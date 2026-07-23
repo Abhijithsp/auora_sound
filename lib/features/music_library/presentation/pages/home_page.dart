@@ -5,6 +5,7 @@ import '../../../../core/widgets/glassmorphic_container.dart';
 import '../../../../core/services/locator/service_locator.dart';
 import '../../../../core/services/audio/playback_history_tracker.dart';
 import '../../domain/entities/song.dart';
+import '../../data/models/song_model.dart';
 import '../bloc/library_cubit.dart';
 import '../bloc/library_state.dart';
 import '../../../player/presentation/bloc/player_cubit.dart';
@@ -170,7 +171,7 @@ class _HomePageState extends State<HomePage> {
               .map(
                 (id) => allSongs.firstWhere(
                   (s) => s.id == id || s.uri == id,
-                  orElse: () => const Song(
+                  orElse: () => SongModel(
                     id: '',
                     title: '',
                     artist: '',
@@ -188,7 +189,7 @@ class _HomePageState extends State<HomePage> {
               .map(
                 (id) => allSongs.firstWhere(
                   (s) => s.id == id || s.uri == id,
-                  orElse: () => const Song(
+                  orElse: () => SongModel(
                     id: '',
                     title: '',
                     artist: '',
