@@ -65,10 +65,7 @@ class _GlowingBackgroundState extends State<GlowingBackground> with SingleTicker
         // Glass Overlay to soften and blend everything
         Positioned.fill(
           child: Container(
-            decoration: BoxDecoration(
-              color: isDark ? Colors.black.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.25),
-              backgroundBlendMode: BlendMode.dstATop,
-            ),
+            color: isDark ? Colors.black.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.25),
           ),
         ),
         // Content

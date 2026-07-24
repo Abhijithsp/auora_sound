@@ -14,6 +14,10 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Draw the first frame immediately so Android dismisses the native splash
+  // cleanly instead of showing a black screen during async initialization.
+  runApp(const _LoadingApp());
+
   // Set up BloC observer for Sentry error reporting
   Bloc.observer = SentryBlocObserver();
 
@@ -38,10 +42,27 @@ void main() async {
       options.replay.sessionSampleRate = 0.1;
       options.replay.onErrorSampleRate = 1.0;
     },
+    // runApp here replaces _LoadingApp with the real app.
     appRunner: () => runApp(SentryWidget(child: const MyApp())),
   );
   // TODO: Remove this line after sending the first sample event to sentry.
   await Sentry.captureException(StateError('This is a sample exception.'));
+}
+
+/// Minimal dark scaffold shown immediately so Flutter draws its first frame
+/// before the async init completes. Matches the default dark background color.
+class _LoadingApp extends StatelessWidget {
+  const _LoadingApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Color(0xFF0F0F11),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {

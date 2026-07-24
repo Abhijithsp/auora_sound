@@ -181,9 +181,11 @@ class _MainShellPageState extends State<MainShellPage> {
                   child: Stack(
                     children: [
                       // Render Screens preserving scroll/states via IndexedStack
-                      IndexedStack(
-                        index: currentIdx,
-                        children: tabs.map((tab) => _getPage(tab)).toList(),
+                      SizedBox.expand(
+                        child: IndexedStack(
+                          index: currentIdx,
+                          children: tabs.map((tab) => _getPage(tab)).toList(),
+                        ),
                       ),
                       
                       // Floating MiniPlayer capsule
