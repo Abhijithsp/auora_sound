@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'core/services/locator/service_locator.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_presets.dart';
@@ -14,14 +13,6 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Request POST_NOTIFICATIONS and battery optimizations BEFORE AudioService
-  // starts, so the foreground service notification is allowed from the first play.
-  await Permission.notification.request();
-  final batteryStatus = await Permission.ignoreBatteryOptimizations.status;
-  if (!batteryStatus.isGranted) {
-    await Permission.ignoreBatteryOptimizations.request();
-  }
 
   // Set up BloC observer for Sentry error reporting
   Bloc.observer = SentryBlocObserver();
