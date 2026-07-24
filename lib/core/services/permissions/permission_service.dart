@@ -11,10 +11,12 @@ class PermissionServiceImpl implements PermissionService {
     await Permission.notification.request();
 
     // Request battery optimization exemption — critical for Nothing Phone / OEM devices
-    // that aggressively kill background services, preventing lock screen media controls.
+    // Note: Requesting this automatically on startup hangs on Samsung devices (like SM M325F).
+    // We remove the automatic request to prevent the app from getting stuck at launch.
     final batteryStatus = await Permission.ignoreBatteryOptimizations.status;
     if (!batteryStatus.isGranted) {
-      await Permission.ignoreBatteryOptimizations.request();
+      // Intentionally not awaiting the request to avoid deadlocks, or just skipping it.
+      // await Permission.ignoreBatteryOptimizations.request();
     }
 
     // Check Android 13+ (SDK 33+) audio permission
