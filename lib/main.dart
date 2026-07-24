@@ -14,54 +14,62 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Draw the first frame immediately so Android dismisses the native splash
-  // cleanly instead of showing a black screen during async initialization.
-  runApp(const _LoadingApp());
-
   // Set up BloC observer for Sentry error reporting
   Bloc.observer = SentryBlocObserver();
 
-  // Initialize DI service locator (audio handler, permissions, cubits, settings)
-  await setupServiceLocator();
+  // Init Sentry SDK without appRunner so we call runApp exactly once below.
+  // This avoids the double-runApp black frame on startup.
+  await SentryFlutter.init((options) {
+    options.dsn =
+        'https://9f91786329458c1f2943456d9dda8563@o4511659427364864.ingest.de.sentry.io/4511659438506064';
+    options.sendDefaultPii = true;
+    options.enableLogs = true;
+    options.tracesSampleRate = 1.0;
+    // ignore: experimental_member_use
+    options.profilesSampleRate = 1.0;
+    options.replay.sessionSampleRate = 0.1;
+    options.replay.onErrorSampleRate = 1.0;
+  });
 
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = 'https://9f91786329458c1f2943456d9dda8563@o4511659427364864.ingest.de.sentry.io/4511659438506064';
-      // Adds request headers and IP for users, for more info visit:
-      // https://docs.sentry.io/platforms/dart/guides/flutter/data-management/data-collected/
-      options.sendDefaultPii = true;
-      options.enableLogs = true;
-      // Set tracesSampleRate to 1.0 to capture 100% of transactions for tracing.
-      // We recommend adjusting this value in production.
-      options.tracesSampleRate = 1.0;
-      // The sampling rate for profiling is relative to tracesSampleRate
-      // Setting to 1.0 will profile 100% of sampled transactions:
-      // ignore: experimental_member_use
-      options.profilesSampleRate = 1.0;
-      // Configure Session Replay
-      options.replay.sessionSampleRate = 0.1;
-      options.replay.onErrorSampleRate = 1.0;
-    },
-    // runApp here replaces _LoadingApp with the real app.
-    appRunner: () => runApp(SentryWidget(child: const MyApp())),
-  );
-  // TODO: Remove this line after sending the first sample event to sentry.
-  await Sentry.captureException(StateError('This is a sample exception.'));
+  // Single runApp call — _AppLoader shows a dark screen immediately and
+  // runs setupServiceLocator in initState, then transitions to MyApp.
+  runApp(SentryWidget(child: const _AppLoader()));
 }
 
-/// Minimal dark scaffold shown immediately so Flutter draws its first frame
-/// before the async init completes. Matches the default dark background color.
-class _LoadingApp extends StatelessWidget {
-  const _LoadingApp();
+/// Shows a dark loading screen while the service locator initialises,
+/// then replaces itself with MyApp — all within a single widget tree rebuild.
+class _AppLoader extends StatefulWidget {
+  const _AppLoader();
+
+  @override
+  State<_AppLoader> createState() => _AppLoaderState();
+}
+
+class _AppLoaderState extends State<_AppLoader> {
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    await setupServiceLocator();
+    // TODO: Remove this line after sending the first sample event to sentry.
+    await Sentry.captureException(StateError('This is a sample exception.'));
+    if (mounted) setState(() => _ready = true);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: Color(0xFF0F0F11),
-      ),
-    );
+    if (!_ready) {
+      return const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(backgroundColor: Color(0xFF0F0F11)),
+      );
+    }
+    return const MyApp();
   }
 }
 
@@ -84,7 +92,8 @@ class MyApp extends StatelessWidget {
       ],
       child: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, settingsState) {
-          final preset = AppThemePresets.getByName(settingsState.themePresetName);
+          final preset =
+              AppThemePresets.getByName(settingsState.themePresetName);
           return MaterialApp(
             title: 'Aura Sound',
             debugShowCheckedModeBanner: false,
@@ -101,4 +110,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
