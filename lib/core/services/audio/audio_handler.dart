@@ -94,10 +94,20 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     ));
   }
 
+  Uri _parseUri(String uriStr) {
+    if (uriStr.startsWith('http://') ||
+        uriStr.startsWith('https://') ||
+        uriStr.startsWith('content://') ||
+        uriStr.startsWith('file://')) {
+      return Uri.parse(uriStr);
+    }
+    return Uri.file(uriStr);
+  }
+
   /// Loads the playlist into the player.
   Future<void> loadPlaylist(List<MediaItem> items) async {
     final sources = items
-        .map((item) => AudioSource.uri(Uri.parse(item.id), tag: item))
+        .map((item) => AudioSource.uri(_parseUri(item.id), tag: item))
         .toList();
 
     // Update queue first so the combined stream can emit the correct mediaItem

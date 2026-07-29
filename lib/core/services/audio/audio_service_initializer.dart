@@ -16,15 +16,15 @@ class AudioServiceInitializer {
       try {
         return await AudioService.init(
           builder: () => MyAudioHandler(),
-          config: const AudioServiceConfig(
+          config: AudioServiceConfig(
             androidNotificationChannelId: AudioConstants.notificationChannelId,
             androidNotificationChannelName: AudioConstants.notificationChannelName,
             androidNotificationChannelDescription: 'Background audio playback',
-            androidNotificationOngoing: false,
+            androidNotificationOngoing: true,
             androidStopForegroundOnPause: false,
             androidShowNotificationBadge: true,
             androidNotificationClickStartsActivity: true,
-            androidNotificationIcon: 'mipmap/ic_launcher',
+            androidNotificationIcon: 'drawable/ic_stat_music',
           ),
         );
       } catch (e) {

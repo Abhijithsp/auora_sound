@@ -14,6 +14,7 @@ class FavoritesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -29,8 +30,11 @@ class FavoritesPage extends StatelessWidget {
             builder: (context, playerState) {
               final favIds = playerState.favorites;
               final favorites = favIds
-                  .map((id) => allSongs.firstWhere((s) => s.id == id || s.uri == id, orElse: () => const Song(id: '', title: '', artist: '', album: '', duration: Duration.zero, uri: '')))
-                  .where((s) => s.id.isNotEmpty)
+                  .map((id) => allSongs.firstWhere(
+                        (s) => s.id == id || s.uri == id || (s.path != null && s.path == id),
+                        orElse: () => const Song(id: '', title: '', artist: '', album: '', duration: Duration.zero, uri: ''),
+                      ))
+                  .where((s) => s.id.isNotEmpty || s.uri.isNotEmpty)
                   .toList();
 
               return CustomScrollView(
@@ -44,22 +48,58 @@ class FavoritesPage extends StatelessWidget {
                     leading: Builder(
                       builder: (context) {
                         return IconButton(
-                          icon: const Icon(Icons.menu_rounded),
+                          icon: Icon(Icons.menu_rounded, color: colors.onSurface),
                           onPressed: () => Scaffold.of(context).openDrawer(),
                         );
                       },
                     ),
                     title: Text(
                       'Favorites',
-                      style: theme.appBarTheme.titleTextStyle?.copyWith(color: colors.onSurface),
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colors.onSurface,
+                      ),
                     ),
                   ),
                   if (favorites.isEmpty)
-                    const SliverFillRemaining(
+                    SliverFillRemaining(
+                      hasScrollBody: false,
                       child: Center(
-                        child: Text(
-                          'No favorite tracks yet',
-                          style: TextStyle(color: Colors.white54),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: colors.tertiary.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.favorite_rounded,
+                                size: 56,
+                                color: colors.tertiary,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No Favorite Tracks Yet',
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colors.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                              child: Text(
+                                'Tap the heart icon on any track options menu to add it to your favorites list.',
+                                textAlign: TextAlign.center,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colors.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     )
