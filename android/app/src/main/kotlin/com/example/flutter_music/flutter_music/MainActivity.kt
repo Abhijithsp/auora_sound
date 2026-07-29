@@ -1,7 +1,8 @@
 package com.example.flutter_music.flutter_music
 
-import io.flutter.embedding.android.FlutterActivity
+import com.ryanheise.audioservice.AudioServiceFragmentActivity
 
-class MainActivity: FlutterActivity() {
+class MainActivity: AudioServiceFragmentActivity() {
 }
+
 

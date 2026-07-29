@@ -26,6 +26,7 @@ class MainShellPage extends StatefulWidget {
 
 class _MainShellPageState extends State<MainShellPage> {
   String _currentTab = 'Home';
+  bool _initialTabSet = false;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   Widget _getPage(String tabName) {
@@ -84,7 +85,14 @@ class _MainShellPageState extends State<MainShellPage> {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, settingsState) {
         final tabs = settingsState.visibleTabs;
-        
+
+        // Apply defaultStartupScreen once on first build
+        if (!_initialTabSet) {
+          final startup = settingsState.defaultStartupScreen;
+          _currentTab = tabs.contains(startup) ? startup : tabs.first;
+          _initialTabSet = true;
+        }
+
         // Safety check if current tab was hidden
         if (!tabs.contains(_currentTab)) {
           _currentTab = tabs.first;
@@ -94,68 +102,71 @@ class _MainShellPageState extends State<MainShellPage> {
 
         // Sidebar Widget (NavigationDrawer or custom Column)
         Widget buildSidebar() {
-          return Container(
-            width: 250,
-            decoration: BoxDecoration(
-              color: colors.surface.withValues(alpha: 0.8),
-              border: Border(
-                right: BorderSide(
-                  color: colors.outlineVariant.withValues(alpha: 0.15),
+          return Material(
+            color: colors.surface.withValues(alpha: 0.8),
+            child: Container(
+              width: 250,
+              decoration: BoxDecoration(
+                border: Border(
+                  right: BorderSide(
+                    color: colors.outlineVariant.withValues(alpha: 0.15),
+                  ),
                 ),
               ),
-            ),
-            child: SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                    child: Text(
-                      'Aura Sound',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: colors.primary,
+              child: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                      child: Text(
+                        'Aura Sound',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: colors.primary,
+                        ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: tabs.length,
-                      itemBuilder: (context, index) {
-                        final tab = tabs[index];
-                        final isSelected = tab == _currentTab;
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isSelected ? colors.primaryContainer : Colors.transparent,
-                            borderRadius: BorderRadius.circular(28),
-                          ),
-                          child: ListTile(
-                            leading: Icon(
-                              _getTabIcon(tab),
-                              color: isSelected ? colors.onPrimaryContainer : colors.onSurfaceVariant,
-                            ),
-                            title: Text(
-                              tab,
-                              style: TextStyle(
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                color: isSelected ? colors.onPrimaryContainer : colors.onSurface,
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: tabs.length,
+                        itemBuilder: (context, index) {
+                          final tab = tabs[index];
+                          final isSelected = tab == _currentTab;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            child: Material(
+                              color: isSelected ? colors.primaryContainer : Colors.transparent,
+                              borderRadius: BorderRadius.circular(28),
+                              clipBehavior: Clip.antiAlias,
+                              child: ListTile(
+                                leading: Icon(
+                                  _getTabIcon(tab),
+                                  color: isSelected ? colors.onPrimaryContainer : colors.onSurfaceVariant,
+                                ),
+                                title: Text(
+                                  tab,
+                                  style: TextStyle(
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    color: isSelected ? colors.onPrimaryContainer : colors.onSurface,
+                                  ),
+                                ),
+                                onTap: () {
+                                  setState(() {
+                                    _currentTab = tab;
+                                  });
+                                  if (!isTablet) {
+                                    Navigator.pop(context);
+                                  }
+                                },
                               ),
                             ),
-                            onTap: () {
-                              setState(() {
-                                _currentTab = tab;
-                              });
-                              if (!isTablet) {
-                                Navigator.pop(context);
-                              }
-                            },
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );

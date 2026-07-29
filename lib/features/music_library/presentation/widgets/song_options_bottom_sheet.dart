@@ -180,24 +180,26 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
     final colors = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF12121E).withValues(alpha: 0.95), // Premium deep dark color
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF12121E).withValues(alpha: 0.95), // Premium deep dark color
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+          border: Border.all(
+            color: colors.primary.withValues(alpha: 0.1),
+            width: 1,
+          ),
         ),
-        border: Border.all(
-          color: colors.primary.withValues(alpha: 0.1),
-          width: 1,
+        padding: EdgeInsets.fromLTRB(
+          24,
+          16,
+          24,
+          MediaQuery.of(context).padding.bottom + 24,
         ),
-      ),
-      padding: EdgeInsets.fromLTRB(
-        24,
-        16,
-        24,
-        MediaQuery.of(context).padding.bottom + 24,
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -269,8 +271,9 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildMainMenu(BuildContext context, ColorScheme colors) {
     return Column(

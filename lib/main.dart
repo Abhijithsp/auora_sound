@@ -12,28 +12,27 @@ import 'features/music_library/presentation/pages/main_shell_page.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Set up BloC observer for Sentry error reporting
+  // SentryFlutter.init with appRunner is the canonical setup pattern.
+  // It calls WidgetsFlutterBinding.ensureInitialized() internally, avoiding
+  // the double-init that happens when you call it manually before SentryFlutter.init.
   Bloc.observer = SentryBlocObserver();
 
-  // Init Sentry SDK without appRunner so we call runApp exactly once below.
-  // This avoids the double-runApp black frame on startup.
-  await SentryFlutter.init((options) {
-    options.dsn =
-        'https://9f91786329458c1f2943456d9dda8563@o4511659427364864.ingest.de.sentry.io/4511659438506064';
-    options.sendDefaultPii = true;
-    options.enableLogs = true;
-    options.tracesSampleRate = 1.0;
-    // ignore: experimental_member_use
-    options.profilesSampleRate = 1.0;
-    options.replay.sessionSampleRate = 0.1;
-    options.replay.onErrorSampleRate = 1.0;
-  });
-
-  // Single runApp call — _AppLoader shows a dark screen immediately and
-  // runs setupServiceLocator in initState, then transitions to MyApp.
-  runApp(SentryWidget(child: const _AppLoader()));
+  await SentryFlutter.init(
+    (options) {
+      options.dsn =
+          'https://9f91786329458c1f2943456d9dda8563@o4511659427364864.ingest.de.sentry.io/4511659438506064';
+      options.sendDefaultPii = true;
+      options.enableLogs = true;
+      options.tracesSampleRate = 1.0;
+      // ignore: experimental_member_use
+      options.profilesSampleRate = 1.0;
+      // Session replay encodes a video stream on startup which causes severe
+      // frame drops (1500ms+ Davey frames). Disable until the app is stable.
+      options.replay.sessionSampleRate = 0.0;
+      options.replay.onErrorSampleRate = 0.0;
+    },
+    appRunner: () => runApp(SentryWidget(child: const _AppLoader())),
+  );
 }
 
 /// Shows a dark loading screen while the service locator initialises,
@@ -51,13 +50,19 @@ class _AppLoaderState extends State<_AppLoader> {
   @override
   void initState() {
     super.initState();
-    _initialize();
+    // Delay until after the first frame so the Android Activity is fully
+    // window-attached before AudioService.init() makes platform channel calls.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initialize());
   }
 
   Future<void> _initialize() async {
-    await setupServiceLocator();
-    // TODO: Remove this line after sending the first sample event to sentry.
-    await Sentry.captureException(StateError('This is a sample exception.'));
+    try {
+      await setupServiceLocator();
+    } catch (e, st) {
+      // Log but don't block startup — the app can function without AudioService
+      // (playback will be unavailable but the library is still browsable).
+      debugPrint('setupServiceLocator failed: $e\n$st');
+    }
     if (mounted) setState(() => _ready = true);
   }
 

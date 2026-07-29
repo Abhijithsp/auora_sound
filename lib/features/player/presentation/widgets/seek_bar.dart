@@ -16,6 +16,7 @@ class SeekBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final playerCubit = context.read<PlayerCubit>();
+    final colors = Theme.of(context).colorScheme;
 
     return StreamBuilder<Duration>(
       stream: AudioService.position,
@@ -39,11 +40,11 @@ class SeekBar extends StatelessWidget {
                 children: [
                   Text(
                     DurationFormatter.format(displayPosition),
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
                   ),
                   Text(
                     DurationFormatter.format(duration),
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
                   ),
                 ],
               ),

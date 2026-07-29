@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,44 +27,33 @@ import '../permissions/permission_service.dart';
 
 final getIt = GetIt.instance;
 
+/// No-op AudioHandler used when AudioService.init() fails on first launch.
+/// Lets the app load the music library without crashing; playback is
+/// unavailable until the user restarts the app.
+class _NullAudioHandler extends BaseAudioHandler {}
+
 Future<void> setupServiceLocator() async {
-  // External
+  // ── 1. Core dependencies (always succeed) ─────────────────────────────────
   final prefs = await SharedPreferences.getInstance();
   getIt.registerSingleton<SharedPreferences>(prefs);
 
   getIt.registerLazySingleton<PlaybackHistoryTracker>(
     () => PlaybackHistoryTracker(getIt<SharedPreferences>()),
   );
-  
+
   getIt.registerLazySingleton<OnAudioQuery>(() => OnAudioQuery());
-
-  // Services
   getIt.registerLazySingleton<PermissionService>(() => PermissionServiceImpl());
-  
-  final audioHandler = await AudioServiceInitializer.init();
-  getIt.registerSingleton<AudioHandler>(audioHandler);
 
-  getIt.registerLazySingleton<PlayerController>(
-    () => PlayerControllerImpl(getIt<AudioHandler>()),
-  );
-
-  // Music Library Feature
-  // Datasources
+  // ── 2. Music library feature (always succeeds, no AudioService needed) ────
   getIt.registerLazySingleton<LocalSongDatasource>(
     () => LocalSongDatasourceImpl(getIt<OnAudioQuery>()),
   );
-  
-  // Repositories
   getIt.registerLazySingleton<SongRepository>(
     () => SongRepositoryImpl(getIt<LocalSongDatasource>()),
   );
-  
-  // Use cases
   getIt.registerLazySingleton<GetAllSongs>(
     () => GetAllSongs(getIt<SongRepository>()),
   );
-  
-  // Cubits
   getIt.registerFactory<LibraryCubit>(
     () => LibraryCubit(
       getAllSongs: getIt<GetAllSongs>(),
@@ -71,20 +61,31 @@ Future<void> setupServiceLocator() async {
       prefs: getIt<SharedPreferences>(),
     ),
   );
+  getIt.registerFactory<SettingsCubit>(
+    () => SettingsCubit(getIt<SharedPreferences>()),
+  );
 
-  // Player Feature
-  // Repositories
+  // ── 3. AudioService + player (may fail on first launch; falls back safely) ─
+  AudioHandler audioHandler;
+  try {
+    audioHandler = await AudioServiceInitializer.init();
+  } catch (e) {
+    debugPrint('AudioService.init() failed, using null handler: $e');
+    audioHandler = _NullAudioHandler();
+  }
+  getIt.registerSingleton<AudioHandler>(audioHandler);
+
+  getIt.registerLazySingleton<PlayerController>(
+    () => PlayerControllerImpl(getIt<AudioHandler>()),
+  );
   getIt.registerLazySingleton<PlayerRepository>(
     () => PlayerRepositoryImpl(getIt<PlayerController>()),
   );
-
-  // Use cases
   getIt.registerLazySingleton<PlaySong>(() => PlaySong(getIt<PlayerRepository>()));
   getIt.registerLazySingleton<PauseSong>(() => PauseSong(getIt<PlayerRepository>()));
   getIt.registerLazySingleton<NextSong>(() => NextSong(getIt<PlayerRepository>()));
   getIt.registerLazySingleton<PreviousSong>(() => PreviousSong(getIt<PlayerRepository>()));
 
-  // Cubits
   getIt.registerFactory<PlayerCubit>(
     () => PlayerCubit(
       playSong: getIt<PlaySong>(),
@@ -94,9 +95,5 @@ Future<void> setupServiceLocator() async {
       playerRepository: getIt<PlayerRepository>(),
       historyTracker: getIt<PlaybackHistoryTracker>(),
     ),
-  );
-
-  getIt.registerFactory<SettingsCubit>(
-    () => SettingsCubit(getIt<SharedPreferences>()),
   );
 }

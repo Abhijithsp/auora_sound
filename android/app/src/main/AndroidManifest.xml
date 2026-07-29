@@ -17,6 +17,15 @@
         android:label="Aura Sound"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <!-- Remove Sentry's ContentProvider to prevent auto-init before Flutter.
+             tools:node="remove" excises it from the merged manifest entirely.
+             Without this, SentryInitProvider fires before the Dart isolate starts,
+             causing a second SentryFlutter.init to re-init and burn ~2s on main thread. -->
+        <provider
+            android:name="io.sentry.android.core.SentryInitProvider"
+            android:authorities="${applicationId}.SentryInitProvider"
+            tools:node="remove" />
         
         <!-- Metadata for the notification icon -->
         <meta-data

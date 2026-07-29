@@ -121,53 +121,54 @@ class SongTile extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      child: Material(
         color: isActive 
             ? colors.primaryContainer.withValues(alpha: 0.25)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        leading: _buildArtwork(context, colors),
-        title: Text(
-          song.title,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
-            fontSize: 16,
-            color: isActive ? colors.onPrimaryContainer : colors.onSurface,
-          ),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 2.0),
-          child: Text(
-            '${song.artist} • ${song.album}',
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          leading: _buildArtwork(context, colors),
+          title: Text(
+            song.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: isActive ? colors.onPrimaryContainer.withValues(alpha: 0.7) : colors.onSurfaceVariant,
-              fontSize: 13,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
+              fontSize: 16,
+              color: isActive ? colors.onPrimaryContainer : colors.onSurface,
             ),
           ),
-        ),
-        trailing: IconButton(
-          icon: Icon(
-            Icons.more_vert_rounded,
-            color: isActive ? colors.onPrimaryContainer : colors.onSurfaceVariant,
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 2.0),
+            child: Text(
+              '${song.artist} • ${song.album}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: isActive ? colors.onPrimaryContainer.withValues(alpha: 0.7) : colors.onSurfaceVariant,
+                fontSize: 13,
+              ),
+            ),
           ),
-          onPressed: () {
-            SongOptionsBottomSheet.show(
-              context,
-              song,
-              playlistName: playlistName,
-            );
-          },
+          trailing: IconButton(
+            icon: Icon(
+              Icons.more_vert_rounded,
+              color: isActive ? colors.onPrimaryContainer : colors.onSurfaceVariant,
+            ),
+            onPressed: () {
+              SongOptionsBottomSheet.show(
+                context,
+                song,
+                playlistName: playlistName,
+              );
+            },
+          ),
+          onTap: onTap,
         ),
-        onTap: onTap,
       ),
     );
   }

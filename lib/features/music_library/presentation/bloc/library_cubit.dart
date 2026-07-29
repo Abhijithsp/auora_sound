@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/services/permissions/permission_service.dart';
@@ -56,9 +57,10 @@ class LibraryCubit extends Cubit<LibraryState> {
       status: cachedSongs.isNotEmpty ? LibraryStatus.success : LibraryStatus.initial,
     ));
 
-    // Auto-scan on startup
+    // Delay auto-scan until after the first frame so the Android Activity is
+    // fully attached before permission_handler tries to access it.
     if (autoScan || cachedSongs.isEmpty) {
-      Future.delayed(Duration.zero, () => loadSongs());
+      WidgetsBinding.instance.addPostFrameCallback((_) => loadSongs());
     }
   }
 
