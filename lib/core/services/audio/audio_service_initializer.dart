@@ -20,11 +20,22 @@ class AudioServiceInitializer {
             androidNotificationChannelId: AudioConstants.notificationChannelId,
             androidNotificationChannelName: AudioConstants.notificationChannelName,
             androidNotificationChannelDescription: 'Background audio playback',
-            androidNotificationOngoing: true,
+            // audio_service asserts `!ongoing || stopForegroundOnPause`.
+            // ongoing=true with stopForegroundOnPause=false throws an
+            // AssertionError here, AudioService.init never completes, and the
+            // app silently falls back to _NullAudioHandler (no MediaSession,
+            // no notification). Keep the service in the foreground while
+            // paused so Nothing OS / OEM task killers can't reap it; the
+            // foreground-service notification is non-dismissable anyway.
+            androidNotificationOngoing: false,
             androidStopForegroundOnPause: false,
             androidShowNotificationBadge: true,
             androidNotificationClickStartsActivity: true,
             androidNotificationIcon: 'drawable/ic_stat_music',
+            // Downscale embedded album art before handing it to the
+            // MediaSession to keep the notification bitmap small.
+            artDownscaleWidth: 512,
+            artDownscaleHeight: 512,
           ),
         );
       } catch (e) {

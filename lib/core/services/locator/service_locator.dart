@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../features/music_library/data/datasources/local_song_datasource.dart';
@@ -69,8 +70,11 @@ Future<void> setupServiceLocator() async {
   AudioHandler audioHandler;
   try {
     audioHandler = await AudioServiceInitializer.init();
-  } catch (e) {
+  } catch (e, st) {
     debugPrint('AudioService.init() failed, using null handler: $e');
+    // Without this, a failed init is invisible in release builds: playback
+    // controls and the media notification simply never appear.
+    await Sentry.captureException(e, stackTrace: st);
     audioHandler = _NullAudioHandler();
   }
   getIt.registerSingleton<AudioHandler>(audioHandler);

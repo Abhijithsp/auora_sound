@@ -16,12 +16,34 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _player.sequenceStateStream.listen((sequenceState) {
       final currentSource = sequenceState.currentSource;
       if (currentSource != null) {
-        final item = currentSource.tag as MediaItem?;
-        if (item != null) {
+        final tag = currentSource.tag as MediaItem?;
+        if (tag != null) {
+          // Prefer the queue's copy: it may carry a corrected duration.
+          final index = sequenceState.currentIndex;
+          final q = queue.value;
+          final item = index != null && index < q.length && q[index].id == tag.id
+              ? q[index]
+              : tag;
           mediaItem.add(item);
         }
       }
       _broadcastState();
+    });
+
+    // MediaStore durations can be missing (0). Use the decoder's duration so
+    // the notification / lock screen seek bar has a correct range.
+    _player.durationStream.listen((duration) {
+      final item = mediaItem.value;
+      if (duration == null || item == null || item.duration == duration) {
+        return;
+      }
+      final index = _player.currentIndex;
+      if (index == null || index >= queue.value.length) return;
+      if (queue.value[index].id != item.id) return;
+      final updated = item.copyWith(duration: duration);
+      final newQueue = List<MediaItem>.from(queue.value)..[index] = updated;
+      queue.add(newQueue);
+      mediaItem.add(updated);
     });
 
     // ── 2. Forward player state changes to audio_service ───────────────────
@@ -104,8 +126,23 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return Uri.file(uriStr);
   }
 
+  /// Attaches album artwork for MediaStore tracks that have no explicit art.
+  ///
+  /// audio_service loads `content://` art natively; with `loadThumbnailUri`
+  /// set it uses ContentResolver.loadThumbnail (Android 10+), which extracts
+  /// the embedded album art from the audio file itself. Any failure there just
+  /// yields no artwork — it never affects playback.
+  MediaItem _withArtwork(MediaItem item) {
+    if (item.artUri != null || !item.id.startsWith('content://')) return item;
+    return item.copyWith(
+      artUri: Uri.parse(item.id),
+      extras: {...?item.extras, 'loadThumbnailUri': item.id},
+    );
+  }
+
   /// Loads the playlist into the player.
-  Future<void> loadPlaylist(List<MediaItem> items) async {
+  Future<void> loadPlaylist(List<MediaItem> rawItems) async {
+    final items = rawItems.map(_withArtwork).toList();
     final sources = items
         .map((item) => AudioSource.uri(_parseUri(item.id), tag: item))
         .toList();
@@ -123,8 +160,9 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> playMediaItem(MediaItem mediaItem) async {
-    this.mediaItem.add(mediaItem);
-
+    // skipToQueueItem publishes the queue's copy of this item (which carries
+    // artwork), so don't push the raw item first — that would briefly
+    // replace the notification metadata with an art-less version.
     final index = queue.value.indexWhere((q) => q.id == mediaItem.id);
     if (index != -1) {
       await skipToQueueItem(index);
