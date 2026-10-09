@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'home_page.dart';
@@ -14,6 +15,9 @@ import '../../../player/presentation/bloc/player_cubit.dart';
 import '../../../player/presentation/bloc/player_state.dart';
 import '../../../player/presentation/widgets/mini_player.dart';
 import '../../../player/presentation/pages/now_playing_page.dart';
+import '../../../../core/theme/glass_style.dart';
+import '../../../../core/widgets/aurora_background.dart';
+import '../../../../core/widgets/surface_card.dart';
 
 class MainShellPage extends StatefulWidget {
   const MainShellPage({super.key});
@@ -114,9 +118,12 @@ class _MainShellPageState extends State<MainShellPage> {
           });
         }
 
+        final glass = GlassStyle.of(context);
+
         Widget buildSidebar({required bool inline}) {
-          return NavigationDrawer(
+          final drawer = NavigationDrawer(
             elevation: inline ? 0 : null,
+            backgroundColor: glass.enabled ? glass.fill(colors) : null,
             selectedIndex: currentIdx,
             onDestinationSelected: (index) {
               selectTab(tabs[index]);
@@ -142,6 +149,15 @@ class _MainShellPageState extends State<MainShellPage> {
                 ),
             ],
           );
+          // The slide-out drawer floats over content, so frost it with blur.
+          if (inline || !glass.enabled) return drawer;
+          return ClipRRect(
+            borderRadius: const BorderRadius.horizontal(right: Radius.circular(16)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: glass.blurSigma, sigmaY: glass.blurSigma),
+              child: drawer,
+            ),
+          );
         }
 
         final bool hasOverflow = tabs.length > 5;
@@ -151,8 +167,10 @@ class _MainShellPageState extends State<MainShellPage> {
 
         final bool isCurrentTabInBottomBar = bottomBarTabs.contains(_currentTab);
 
-        return Scaffold(
+        return AuroraBackground(
+          child: Scaffold(
           key: _scaffoldKey,
+          backgroundColor: Colors.transparent,
           drawer: buildSidebar(inline: false),
           body: Row(
             children: [
@@ -216,10 +234,14 @@ class _MainShellPageState extends State<MainShellPage> {
               : SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: ClipRRect(
+                    child: SurfaceCard(
+                      blur: true,
+                      color: glass.enabled ? null : colors.surfaceContainer,
                       borderRadius: BorderRadius.circular(28),
                       child: NavigationBar(
                         height: 72,
+                        backgroundColor: Colors.transparent,
+                        surfaceTintColor: Colors.transparent,
                         selectedIndex: isCurrentTabInBottomBar
                             ? bottomBarTabs.indexOf(_currentTab)
                             : bottomBarTabs.length - 1,
@@ -242,6 +264,7 @@ class _MainShellPageState extends State<MainShellPage> {
                     ),
                   ),
                 ),
+          ),
         );
       },
     );

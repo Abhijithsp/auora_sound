@@ -77,6 +77,9 @@ class SettingsCubit extends Cubit<SettingsState> {
       visibleTabs: visibleTabs,
       allTabs: tabOrder,
       tabVisibility: tabVisibilityMap,
+      glassEnabled: _prefs.getBool('glassEnabled') ?? true,
+      glassIntensity: _prefs.getDouble('glassIntensity') ?? 0.6,
+      animatedBackground: _prefs.getBool('animatedBackground') ?? true,
     ));
   }
 
@@ -128,6 +131,23 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> updateAccentColor(Color color) async {
     await _prefs.setInt('accentColor', color.toARGB32());
     emit(state.copyWith(accentColor: color));
+  }
+
+  Future<void> setGlassEnabled(bool enabled) async {
+    await _prefs.setBool('glassEnabled', enabled);
+    emit(state.copyWith(glassEnabled: enabled));
+  }
+
+  /// Called on every slider tick; only persisted when [persist] is true
+  /// (on drag end) to avoid a disk write per frame.
+  Future<void> setGlassIntensity(double intensity, {bool persist = false}) async {
+    emit(state.copyWith(glassIntensity: intensity));
+    if (persist) await _prefs.setDouble('glassIntensity', intensity);
+  }
+
+  Future<void> setAnimatedBackground(bool enabled) async {
+    await _prefs.setBool('animatedBackground', enabled);
+    emit(state.copyWith(animatedBackground: enabled));
   }
 
   Future<void> updateViewPreference(String pref) async {

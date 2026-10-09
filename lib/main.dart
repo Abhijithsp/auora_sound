@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/services/locator/service_locator.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/glass_style.dart';
 import 'core/theme/theme_presets.dart';
 import 'core/utils/sentry_bloc_observer.dart';
 import 'features/music_library/presentation/bloc/library_cubit.dart';
@@ -99,14 +100,19 @@ class MyApp extends StatelessWidget {
         builder: (context, settingsState) {
           final preset =
               AppThemePresets.getByName(settingsState.themePresetName);
+          final glass = GlassStyle(
+            enabled: settingsState.glassEnabled,
+            intensity: settingsState.glassIntensity,
+            animatedBackground: settingsState.animatedBackground,
+          );
           return MaterialApp(
             title: 'Aura Sound',
             debugShowCheckedModeBanner: false,
             navigatorObservers: [
               SentryNavigatorObserver(),
             ],
-            theme: AppTheme.generateTheme(preset, false),
-            darkTheme: AppTheme.generateTheme(preset, true),
+            theme: AppTheme.generateTheme(preset, false, glass: glass),
+            darkTheme: AppTheme.generateTheme(preset, true, glass: glass),
             themeMode: settingsState.themeMode,
             home: const MainShellPage(),
           );

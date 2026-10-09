@@ -6,6 +6,8 @@ import '../bloc/library_state.dart';
 import '../widgets/song_tile.dart';
 import '../../../player/presentation/bloc/player_cubit.dart';
 import '../../../player/presentation/bloc/player_state.dart';
+import '../../../../core/widgets/aurora_background.dart';
+import '../../../../core/theme/glass_style.dart';
 
 class PlaylistDetailPage extends StatelessWidget {
   final String playlistName;
@@ -35,183 +37,188 @@ class PlaylistDetailPage extends StatelessWidget {
     final textTheme = theme.textTheme;
     final headerGradient = _getDeterministicColors(playlistName);
 
-    return Scaffold(
-      body: BlocBuilder<LibraryCubit, LibraryState>(
-        builder: (context, libraryState) {
-          final allSongs = libraryState.songs;
-          final songUris = libraryState.playlists[playlistName] ?? [];
+    return AuroraBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: BlocBuilder<LibraryCubit, LibraryState>(
+          builder: (context, libraryState) {
+            final allSongs = libraryState.songs;
+            final songUris = libraryState.playlists[playlistName] ?? [];
 
-          // Resolve URIs to Songs
-          final playlistSongs = songUris
-              .map((uri) => allSongs.firstWhere(
-                    (s) => s.uri == uri || s.id == uri,
-                    orElse: () => const Song(
-                      id: '',
-                      title: '',
-                      artist: '',
-                      album: '',
-                      duration: Duration.zero,
-                      uri: '',
-                    ),
-                  ))
-              .where((s) => s.id.isNotEmpty)
-              .toList();
-
-          return BlocBuilder<PlayerCubit, PlayerState>(
-            builder: (context, playerState) {
-              return CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  // Header Sliver
-                  SliverAppBar(
-                    expandedHeight: 220.0,
-                    pinned: true,
-                    backgroundColor: colors.surface,
-                    flexibleSpace: FlexibleSpaceBar(
-                      title: Text(
-                        playlistName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          shadows: [Shadow(blurRadius: 10, color: Colors.black54, offset: Offset(0, 2))],
-                        ),
+            // Resolve URIs to Songs
+            final playlistSongs = songUris
+                .map((uri) => allSongs.firstWhere(
+                      (s) => s.uri == uri || s.id == uri,
+                      orElse: () => const Song(
+                        id: '',
+                        title: '',
+                        artist: '',
+                        album: '',
+                        duration: Duration.zero,
+                        uri: '',
                       ),
-                      background: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: headerGradient,
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                    ))
+                .where((s) => s.id.isNotEmpty)
+                .toList();
+
+            return BlocBuilder<PlayerCubit, PlayerState>(
+              builder: (context, playerState) {
+                return CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    // Header Sliver
+                    SliverAppBar(
+                      expandedHeight: 220.0,
+                      pinned: true,
+                      backgroundColor: GlassStyle.of(context).enabled
+                        ? GlassStyle.of(context).fill(colors)
+                        : colors.surface,
+                      flexibleSpace: FlexibleSpaceBar(
+                        title: Text(
+                          playlistName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            shadows: [Shadow(blurRadius: 10, color: Colors.black54, offset: Offset(0, 2))],
                           ),
                         ),
-                        child: Container(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          child: const Center(
-                            child: Icon(
-                              Icons.queue_music_rounded,
-                              color: Colors.white70,
-                              size: 64,
+                        background: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: headerGradient,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
                           ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Control Buttons: Play & Shuffle
-                  if (playlistSongs.isNotEmpty)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: FilledButton.icon(
-                                onPressed: () {
-                                  context.read<PlayerCubit>().playSongItem(
-                                        playlistSongs.first,
-                                        playlistSongs,
-                                      );
-                                },
-                                icon: const Icon(Icons.play_arrow_rounded),
-                                label: const Text('Play'),
-                                style: FilledButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: FilledButton.tonalIcon(
-                                onPressed: () {
-                                  final shuffled = List<Song>.from(playlistSongs)..shuffle();
-                                  context.read<PlayerCubit>().playSongItem(
-                                        shuffled.first,
-                                        shuffled,
-                                      );
-                                },
-                                icon: const Icon(Icons.shuffle_rounded),
-                                label: const Text('Shuffle'),
-                                style: FilledButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                  // Song List
-                  if (playlistSongs.isEmpty)
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
+                          child: Container(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            child: const Center(
+                              child: Icon(
                                 Icons.queue_music_rounded,
+                                color: Colors.white70,
                                 size: 64,
-                                color: colors.outline,
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'This playlist is empty',
-                                style: textTheme.titleMedium?.copyWith(color: colors.onSurfaceVariant),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Control Buttons: Play & Shuffle
+                    if (playlistSongs.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: FilledButton.icon(
+                                  onPressed: () {
+                                    context.read<PlayerCubit>().playSongItem(
+                                          playlistSongs.first,
+                                          playlistSongs,
+                                        );
+                                  },
+                                  icon: const Icon(Icons.play_arrow_rounded),
+                                  label: const Text('Play'),
+                                  style: FilledButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                  ),
+                                ),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Add songs to this playlist from your library or folders options menu.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: FilledButton.tonalIcon(
+                                  onPressed: () {
+                                    final shuffled = List<Song>.from(playlistSongs)..shuffle();
+                                    context.read<PlayerCubit>().playSongItem(
+                                          shuffled.first,
+                                          shuffled,
+                                        );
+                                  },
+                                  icon: const Icon(Icons.shuffle_rounded),
+                                  label: const Text('Shuffle'),
+                                  style: FilledButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
                         ),
                       ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.only(bottom: 120),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final song = playlistSongs[index];
-                            final currentTrack = playerState.currentTrack;
-                            final isActive = currentTrack != null && currentTrack.id == song.uri;
-                            final isPlaying = isActive && playerState.isPlaying;
 
-                            return SongTile(
-                              song: song,
-                              isActive: isActive,
-                              isPlaying: isPlaying,
-                              playlistName: playlistName,
-                              onTap: () {
-                                // Play song restricting the queue only to songs in this playlist
-                                context.read<PlayerCubit>().playSongItem(
-                                      song,
-                                      playlistSongs,
-                                    );
-                              },
-                            );
-                          },
-                          childCount: playlistSongs.length,
+                    // Song List
+                    if (playlistSongs.isEmpty)
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.queue_music_rounded,
+                                  size: 64,
+                                  color: colors.outline,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'This playlist is empty',
+                                  style: textTheme.titleMedium?.copyWith(color: colors.onSurfaceVariant),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Add songs to this playlist from your library or folders options menu.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.only(bottom: 120),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final song = playlistSongs[index];
+                              final currentTrack = playerState.currentTrack;
+                              final isActive = currentTrack != null && currentTrack.id == song.uri;
+                              final isPlaying = isActive && playerState.isPlaying;
+
+                              return SongTile(
+                                song: song,
+                                isActive: isActive,
+                                isPlaying: isPlaying,
+                                playlistName: playlistName,
+                                onTap: () {
+                                  // Play song restricting the queue only to songs in this playlist
+                                  context.read<PlayerCubit>().playSongItem(
+                                        song,
+                                        playlistSongs,
+                                      );
+                                },
+                              );
+                            },
+                            childCount: playlistSongs.length,
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              );
-            },
-          );
-        },
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

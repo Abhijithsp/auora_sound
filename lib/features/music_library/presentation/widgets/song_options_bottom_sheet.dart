@@ -10,6 +10,8 @@ import '../bloc/library_cubit.dart';
 import '../bloc/library_state.dart';
 import '../../../player/presentation/bloc/player_cubit.dart';
 import '../../../player/presentation/bloc/player_state.dart';
+import '../../../../core/theme/glass_style.dart';
+import '../../../../core/widgets/surface_card.dart';
 
 class SongOptionsBottomSheet extends StatefulWidget {
   final Song song;
@@ -182,13 +184,12 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
 
     return Material(
       color: Colors.transparent,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colors.surfaceContainerLow,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(28),
-            topRight: Radius.circular(28),
-          ),
+      child: SurfaceCard(
+        blur: true,
+        color: GlassStyle.of(context).enabled ? null : colors.surfaceContainerLow,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
         ),
         padding: EdgeInsets.fromLTRB(
           24,

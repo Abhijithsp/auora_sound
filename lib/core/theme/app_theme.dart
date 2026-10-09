@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'glass_style.dart';
 import 'theme_presets.dart';
 
 class AppTheme {
@@ -23,7 +24,11 @@ class AppTheme {
     }
   }
 
-  static ThemeData generateTheme(AppThemePreset preset, bool isDark) {
+  static ThemeData generateTheme(
+    AppThemePreset preset,
+    bool isDark, {
+    GlassStyle glass = GlassStyle.disabled,
+  }) {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: preset.primary,
       brightness: isDark ? Brightness.dark : Brightness.light,
@@ -44,11 +49,13 @@ class AppTheme {
     );
 
     return base.copyWith(
+      extensions: [glass],
       scaffoldBackgroundColor: colorScheme.surface,
       primaryColor: colorScheme.primary,
       textTheme: textTheme,
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.surface,
+        // Transparent in glass mode so the aurora shows behind the bar.
+        backgroundColor: glass.enabled ? Colors.transparent : colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,

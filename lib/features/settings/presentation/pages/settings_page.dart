@@ -7,6 +7,7 @@ import '../bloc/settings_state.dart';
 import '../../../music_library/presentation/bloc/library_cubit.dart';
 import '../../../music_library/presentation/bloc/library_state.dart';
 import '../../../music_library/presentation/pages/main_shell_page.dart';
+import '../../../../core/theme/glass_style.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -124,6 +125,76 @@ class SettingsPage extends StatelessWidget {
 
 
 
+
+                  // Frosted Glass Style
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    child: SurfaceCard(
+                      borderRadius: BorderRadius.circular(16),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(Icons.blur_on_rounded, color: colors.primary),
+                            title: const Text('Frosted Glass', style: TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: const Text('Translucent frosted surfaces over a soft colour glow'),
+                            trailing: Switch(
+                              value: state.glassEnabled,
+                              onChanged: settingsCubit.setGlassEnabled,
+                            ),
+                          ),
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeOutCubic,
+                            child: !state.glassEnabled
+                                ? const SizedBox(width: double.infinity)
+                                : Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Divider(height: 24, thickness: 0.5),
+                                      Row(
+                                        children: [
+                                          Text('Intensity', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                                          const Spacer(),
+                                          Text(
+                                            '${(state.glassIntensity * 100).round()}%',
+                                            style: textTheme.labelLarge?.copyWith(color: colors.primary),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.blur_linear_rounded, size: 18, color: colors.onSurfaceVariant),
+                                          Expanded(
+                                            child: Slider(
+                                              value: state.glassIntensity,
+                                              onChanged: settingsCubit.setGlassIntensity,
+                                              onChangeEnd: (value) => settingsCubit.setGlassIntensity(value, persist: true),
+                                            ),
+                                          ),
+                                          Icon(Icons.blur_on_rounded, size: 18, color: colors.onSurfaceVariant),
+                                        ],
+                                      ),
+                                      const Divider(height: 24, thickness: 0.5),
+                                      ListTile(
+                                        contentPadding: EdgeInsets.zero,
+                                        leading: Icon(Icons.animation_rounded, color: colors.primary),
+                                        title: const Text('Animated Background', style: TextStyle(fontWeight: FontWeight.bold)),
+                                        subtitle: const Text('Slowly drifting glow. Turn off to save battery'),
+                                        trailing: Switch(
+                                          value: state.animatedBackground,
+                                          onChanged: settingsCubit.setAnimatedBackground,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
 
                   // Layout & Startup Settings
                   Container(
@@ -627,11 +698,10 @@ class SettingsPage extends StatelessWidget {
               builder: (context, libState) {
                 final folders = isExcluded ? libState.excludedFolders : libState.includedFolders;
                 
-                return Container(
-                  decoration: BoxDecoration(
-                    color: colors.surfaceContainerLow,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                  ),
+                return SurfaceCard(
+                  blur: true,
+                  color: GlassStyle.of(context).enabled ? null : colors.surfaceContainerLow,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                   child: Column(
                     children: [
                       Center(

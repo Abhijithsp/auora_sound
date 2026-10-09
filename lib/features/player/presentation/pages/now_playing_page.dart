@@ -7,6 +7,8 @@ import '../bloc/player_state.dart';
 import '../widgets/artwork_widget.dart';
 import '../widgets/player_controls.dart';
 import '../widgets/seek_bar.dart';
+import '../../../../core/widgets/aurora_background.dart';
+import '../../../../core/theme/glass_style.dart';
 
 class NowPlayingPage extends StatefulWidget {
   const NowPlayingPage({super.key});
@@ -24,223 +26,226 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
     final colors = theme.colorScheme;
     final playerCubit = context.read<PlayerCubit>();
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.expand_more_rounded, size: 36),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Now Playing'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert_rounded),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('More options'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
+    return AuroraBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.expand_more_rounded, size: 36),
+            onPressed: () => Navigator.pop(context),
           ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: BlocBuilder<PlayerCubit, PlayerState>(
-        builder: (context, state) {
-          final currentTrack = state.currentTrack;
-          if (currentTrack == null) {
-            return const Center(child: Text('No song playing'));
-          }
-
-          final duration = currentTrack.duration ?? Duration.zero;
-          final size = MediaQuery.of(context).size.width * 0.72;
-          final isFavorite = state.favorites.contains(currentTrack.id);
-
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 16),
-                  
-                  Opacity(
-                    opacity: state.isPlaying ? 0.8 : 0.3,
-                    child: VisualizerWidget(
-                      isPlaying: state.isPlaying,
-                      barCount: 15,
-                      height: 20,
-                      width: 140,
-                    ),
+          title: const Text('Now Playing'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.more_vert_rounded),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('More options'),
+                    duration: Duration(seconds: 1),
                   ),
-                  const SizedBox(height: 32),
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        body: BlocBuilder<PlayerCubit, PlayerState>(
+          builder: (context, state) {
+            final currentTrack = state.currentTrack;
+            if (currentTrack == null) {
+              return const Center(child: Text('No song playing'));
+            }
 
-                  Expanded(
-                    child: Center(
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            width: size * 0.9,
-                            height: size * 0.9,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: colors.primaryContainer,
-                            ),
-                          ),
-                          ArtworkWidget(
-                            track: currentTrack,
-                            isPlaying: state.isPlaying,
-                            size: size,
-                          ),
-                        ],
+            final duration = currentTrack.duration ?? Duration.zero;
+            final size = MediaQuery.of(context).size.width * 0.72;
+            final isFavorite = state.favorites.contains(currentTrack.id);
+
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                  
+                    Opacity(
+                      opacity: state.isPlaying ? 0.8 : 0.3,
+                      child: VisualizerWidget(
+                        isPlaying: state.isPlaying,
+                        barCount: 15,
+                        height: 20,
+                        width: 140,
                       ),
                     ),
-                  ),
-                  
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 32),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    Expanded(
+                      child: Center(
+                        child: Stack(
+                          alignment: Alignment.center,
                           children: [
-                            Text(
-                              currentTrack.title,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
+                            Container(
+                              width: size * 0.9,
+                              height: size * 0.9,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: colors.primaryContainer,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              currentTrack.artist ?? 'Unknown Artist',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: colors.onSurfaceVariant,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            ArtworkWidget(
+                              track: currentTrack,
+                              isPlaying: state.isPlaying,
+                              size: size,
                             ),
                           ],
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          playerCubit.toggleFavorite(currentTrack.id);
-                        },
-                        child: SurfaceCard(
-                          height: 48,
-                          width: 48,
-                          borderRadius: BorderRadius.circular(16),
-                          color: isFavorite
-                              ? colors.tertiaryContainer
-                              : colors.surfaceContainerHigh,
-                          padding: EdgeInsets.zero,
-                          child: Center(
-                            child: AnimatedScale(
-                              scale: isFavorite ? 1.15 : 1.0,
-                              duration: const Duration(milliseconds: 200),
-                              child: Icon(
-                                isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                                color: isFavorite ? colors.onTertiaryContainer : colors.onSurfaceVariant,
-                                size: 24,
+                    ),
+                  
+                    const SizedBox(height: 24),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                currentTrack.title,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                currentTrack.artist ?? 'Unknown Artist',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: colors.onSurfaceVariant,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            playerCubit.toggleFavorite(currentTrack.id);
+                          },
+                          child: SurfaceCard(
+                            height: 48,
+                            width: 48,
+                            borderRadius: BorderRadius.circular(16),
+                            color: isFavorite
+                                ? colors.tertiaryContainer
+                                : colors.surfaceContainerHigh,
+                            padding: EdgeInsets.zero,
+                            child: Center(
+                              child: AnimatedScale(
+                                scale: isFavorite ? 1.15 : 1.0,
+                                duration: const Duration(milliseconds: 200),
+                                child: Icon(
+                                  isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                  color: isFavorite ? colors.onTertiaryContainer : colors.onSurfaceVariant,
+                                  size: 24,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 24),
-
-                  SeekBar(duration: duration),
-                  
-                  const SizedBox(height: 24),
-
-                  const PlayerControls(iconSize: 32),
-                  
-                  const SizedBox(height: 24),
-
-                  // Volume Slider Row
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          state.isMuted || state.volume == 0
-                              ? Icons.volume_off_rounded
-                              : Icons.volume_down_rounded,
-                          size: 20,
-                          color: colors.onSurfaceVariant,
-                        ),
-                        onPressed: () => playerCubit.toggleMute(),
-                      ),
-                      Expanded(
-                        child: SliderTheme(
-                          data: theme.sliderTheme.copyWith(
-                            activeTrackColor: colors.primary,
-                            inactiveTrackColor: colors.secondaryContainer,
-                            thumbColor: colors.primary,
-                            trackHeight: 3.0,
-                            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
-                          ),
-                          child: Slider(
-                            value: state.volume.clamp(0.0, 1.0),
-                            onChanged: (val) {
-                              playerCubit.setVolume(val);
-                            },
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.volume_up_rounded,
-                          size: 20,
-                          color: colors.onSurfaceVariant,
-                        ),
-                        onPressed: () {
-                          playerCubit.setVolume(1.0);
-                        },
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 16),
-
-                  Container(
-                    padding: const EdgeInsets.only(top: 12),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(
-                          color: colors.outlineVariant.withValues(alpha: 0.1),
-                        ),
-                      ),
+                      ],
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  
+                    const SizedBox(height: 24),
+
+                    SeekBar(duration: duration),
+                  
+                    const SizedBox(height: 24),
+
+                    const PlayerControls(iconSize: 32),
+                  
+                    const SizedBox(height: 24),
+
+                    // Volume Slider Row
+                    Row(
                       children: [
-                        _buildUtilityButton(
-                          icon: Icons.playlist_play_rounded,
-                          label: 'QUEUE',
-                          onTap: () => _showQueueBottomSheet(context, state),
+                        IconButton(
+                          icon: Icon(
+                            state.isMuted || state.volume == 0
+                                ? Icons.volume_off_rounded
+                                : Icons.volume_down_rounded,
+                            size: 20,
+                            color: colors.onSurfaceVariant,
+                          ),
+                          onPressed: () => playerCubit.toggleMute(),
+                        ),
+                        Expanded(
+                          child: SliderTheme(
+                            data: theme.sliderTheme.copyWith(
+                              activeTrackColor: colors.primary,
+                              inactiveTrackColor: colors.secondaryContainer,
+                              thumbColor: colors.primary,
+                              trackHeight: 3.0,
+                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
+                            ),
+                            child: Slider(
+                              value: state.volume.clamp(0.0, 1.0),
+                              onChanged: (val) {
+                                playerCubit.setVolume(val);
+                              },
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.volume_up_rounded,
+                            size: 20,
+                            color: colors.onSurfaceVariant,
+                          ),
+                          onPressed: () {
+                            playerCubit.setVolume(1.0);
+                          },
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                  
+                    const SizedBox(height: 16),
+
+                    Container(
+                      padding: const EdgeInsets.only(top: 12),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                            color: colors.outlineVariant.withValues(alpha: 0.1),
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildUtilityButton(
+                            icon: Icons.playlist_play_rounded,
+                            label: 'QUEUE',
+                            onTap: () => _showQueueBottomSheet(context, state),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -299,11 +304,10 @@ class _NowPlayingPageState extends State<NowPlayingPage> {
                 final queue = playerState.queue;
                 final current = playerState.currentTrack;
 
-                return Container(
-                  decoration: BoxDecoration(
-                    color: colors.surfaceContainerLow,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                  ),
+                return SurfaceCard(
+                  blur: true,
+                  color: GlassStyle.of(context).enabled ? null : colors.surfaceContainerLow,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
                   child: Column(
                     children: [
                       Center(

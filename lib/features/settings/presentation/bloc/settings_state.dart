@@ -11,6 +11,9 @@ class SettingsState {
   final List<String> visibleTabs;
   final List<String> allTabs;
   final Map<String, bool> tabVisibility;
+  final bool glassEnabled;
+  final double glassIntensity;
+  final bool animatedBackground;
 
   const SettingsState({
     this.themeMode = ThemeMode.dark,
@@ -30,6 +33,9 @@ class SettingsState {
       'Albums': false,
       'Favorites': false,
     },
+    this.glassEnabled = true,
+    this.glassIntensity = 0.6,
+    this.animatedBackground = true,
   });
 
   SettingsState copyWith({
@@ -43,6 +49,9 @@ class SettingsState {
     List<String>? visibleTabs,
     List<String>? allTabs,
     Map<String, bool>? tabVisibility,
+    bool? glassEnabled,
+    double? glassIntensity,
+    bool? animatedBackground,
   }) {
     return SettingsState(
       themeMode: themeMode ?? this.themeMode,
@@ -55,6 +64,9 @@ class SettingsState {
       visibleTabs: visibleTabs ?? this.visibleTabs,
       allTabs: allTabs ?? this.allTabs,
       tabVisibility: tabVisibility ?? this.tabVisibility,
+      glassEnabled: glassEnabled ?? this.glassEnabled,
+      glassIntensity: glassIntensity ?? this.glassIntensity,
+      animatedBackground: animatedBackground ?? this.animatedBackground,
     );
   }
 }

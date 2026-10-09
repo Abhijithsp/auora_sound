@@ -106,6 +106,7 @@ class MiniPlayer extends StatelessWidget {
           child: Container(
             margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
             child: SurfaceCard(
+              blur: true,
               color: theme.colorScheme.secondaryContainer,
               borderRadius: BorderRadius.circular(24),
               padding: EdgeInsets.zero,
