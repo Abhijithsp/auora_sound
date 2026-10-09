@@ -70,6 +70,12 @@ Future<void> setupServiceLocator() async {
   AudioHandler audioHandler;
   try {
     audioHandler = await AudioServiceInitializer.init();
+    // audio_service swallows native failures (e.g. startForeground throwing,
+    // which means no notification / lock screen controls) into this stream.
+    AudioService.asyncError.listen((e) {
+      debugPrint('AudioService async error: $e');
+      Sentry.captureException(e);
+    });
   } catch (e, st) {
     debugPrint('AudioService.init() failed, using null handler: $e');
     // Without this, a failed init is invisible in release builds: playback

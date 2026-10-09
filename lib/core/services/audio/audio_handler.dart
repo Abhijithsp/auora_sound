@@ -1,8 +1,15 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
+
+  /// True only after an explicit [stop]. audio_service tears down the
+  /// MediaSession and notification whenever the state becomes `idle`, so we
+  /// only let `idle` through when the stop was intentional.
+  bool _stopRequested = false;
 
   MyAudioHandler() {
     _init();
@@ -47,7 +54,16 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     });
 
     // ── 2. Forward player state changes to audio_service ───────────────────
-    _player.playbackEventStream.listen((_) => _broadcastState());
+    // A track that fails to load drops just_audio to idle. Report it instead
+    // of letting it go unhandled; _broadcastState keeps the session alive.
+    _player.playbackEventStream.listen(
+      (_) => _broadcastState(),
+      onError: (Object e, StackTrace st) {
+        debugPrint('Player error: $e');
+        Sentry.captureException(e, stackTrace: st);
+        _broadcastState();
+      },
+    );
     _player.playerStateStream.listen((_) => _broadcastState());
     _player.shuffleModeEnabledStream.listen((_) => _broadcastState());
     _player.loopModeStream.listen((_) => _broadcastState());
@@ -66,8 +82,15 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   /// Broadcasts the player state to audio_service to keep the OS notification in sync.
   void _broadcastState() {
     final playing = _player.playing;
+    // Unintended idle (load error, source swap) with a queue loaded is
+    // reported as ready so the notification and lock screen controls survive.
+    final unintendedIdle = _player.processingState == ProcessingState.idle &&
+        !_stopRequested &&
+        queue.value.isNotEmpty;
     final processingState = {
-      ProcessingState.idle: AudioProcessingState.idle,
+      ProcessingState.idle: unintendedIdle
+          ? AudioProcessingState.ready
+          : AudioProcessingState.idle,
       ProcessingState.loading: AudioProcessingState.loading,
       ProcessingState.buffering: AudioProcessingState.buffering,
       ProcessingState.ready: AudioProcessingState.ready,
@@ -149,6 +172,7 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     // Update queue first so the combined stream can emit the correct mediaItem
     // as soon as just_audio resolves the index.
+    _stopRequested = false;
     queue.add(items);
 
     // setAudioSources is the modern API in just_audio 0.10+
@@ -177,7 +201,10 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   // ── Passthrough controls ──────────────────────────────────────────────────
 
   @override
-  Future<void> play() => _player.play();
+  Future<void> play() {
+    _stopRequested = false;
+    return _player.play();
+  }
 
   @override
   Future<void> pause() => _player.pause();
@@ -251,6 +278,7 @@ class MyAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> stop() async {
+    _stopRequested = true;
     await _player.stop();
     await super.stop();
   }
