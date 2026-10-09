@@ -1,3 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- audio_service looks these up by name (getIdentifier), so the resource
+     shrinker can't see they're used. Without them the media controls get
+     icon id 0 and the notification / lock screen controls are never built. -->
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@drawable/ic_stat_music" />
+    tools:keep="@drawable/ic_stat_music,@drawable/audio_service_*" />
