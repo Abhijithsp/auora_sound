@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/widgets/glassmorphic_container.dart';
+import '../../../../core/widgets/surface_card.dart';
 import '../../../../core/services/locator/service_locator.dart';
 import '../../../../core/services/audio/playback_history_tracker.dart';
 import '../../domain/entities/song.dart';
@@ -12,6 +12,7 @@ import '../../../player/presentation/bloc/player_cubit.dart';
 import '../../../player/presentation/bloc/player_state.dart';
 import '../widgets/song_tile.dart';
 import 'playlist_detail_page.dart';
+import 'main_shell_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -243,7 +244,7 @@ class _HomePageState extends State<HomePage> {
                   builder: (context) {
                     return IconButton(
                       icon: const Icon(Icons.menu_rounded),
-                      onPressed: () => Scaffold.of(context).openDrawer(),
+                      onPressed: () => MainShellPage.openDrawer(context),
                     );
                   },
                 ),
@@ -448,10 +449,8 @@ class _HomePageState extends State<HomePage> {
                               );
                             }
                           },
-                          child: GlassmorphicContainer(
+                          child: SurfaceCard(
                             borderRadius: BorderRadius.circular(20),
-                            borderOpacity: 0.1,
-                            backgroundOpacity: 0.06,
                             padding: const EdgeInsets.all(16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,10 +488,8 @@ class _HomePageState extends State<HomePage> {
                               );
                             }
                           },
-                          child: GlassmorphicContainer(
+                          child: SurfaceCard(
                             borderRadius: BorderRadius.circular(20),
-                            borderOpacity: 0.1,
-                            backgroundOpacity: 0.06,
                             padding: const EdgeInsets.all(16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -552,10 +549,8 @@ class _HomePageState extends State<HomePage> {
                           context,
                           context.read<LibraryCubit>(),
                         ),
-                        child: GlassmorphicContainer(
+                        child: SurfaceCard(
                           borderRadius: BorderRadius.circular(20),
-                          borderOpacity: 0.08,
-                          backgroundOpacity: 0.04,
                           padding: const EdgeInsets.symmetric(
                             vertical: 24,
                             horizontal: 16,
@@ -615,10 +610,8 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               );
                             },
-                            child: GlassmorphicContainer(
+                            child: SurfaceCard(
                               borderRadius: BorderRadius.circular(20),
-                              borderOpacity: 0.08,
-                              backgroundOpacity: 0.04,
                               padding: const EdgeInsets.all(12),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

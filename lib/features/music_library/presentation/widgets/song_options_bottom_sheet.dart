@@ -184,14 +184,10 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
       color: Colors.transparent,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF12121E).withValues(alpha: 0.95), // Premium deep dark color
+          color: colors.surfaceContainerLow,
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-          border: Border.all(
-            color: colors.primary.withValues(alpha: 0.1),
-            width: 1,
+            topLeft: Radius.circular(28),
+            topRight: Radius.circular(28),
           ),
         ),
         padding: EdgeInsets.fromLTRB(
@@ -208,7 +204,7 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: colors.onSurfaceVariant.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -247,7 +243,7 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
             ],
           ),
           const SizedBox(height: 24),
-          const Divider(color: Colors.white12, height: 1),
+          Divider(color: colors.outlineVariant, height: 1),
           const SizedBox(height: 8),
 
           // Animated Switcher for Main Menu vs Playlists Submenu
@@ -305,7 +301,7 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
         ListTile(
           leading: Icon(Icons.playlist_add_rounded, color: colors.onSurfaceVariant),
           title: const Text('Add to Playlist', style: TextStyle(fontWeight: FontWeight.w500)),
-          trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: Colors.white30),
+          trailing: Icon(Icons.chevron_right_rounded, size: 20, color: colors.onSurfaceVariant),
           onTap: () {
             setState(() {
               _showPlaylists = true;
@@ -341,12 +337,12 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
         // Remove from current Playlist (if applicable)
         if (widget.playlistName != null) ...[
           const SizedBox(height: 8),
-          const Divider(color: Colors.white10),
+          Divider(color: colors.outlineVariant),
           ListTile(
-            leading: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-            title: const Text(
+            leading: Icon(Icons.delete_outline_rounded, color: colors.error),
+            title: Text(
               'Remove from Playlist',
-              style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w500),
+              style: TextStyle(color: colors.error, fontWeight: FontWeight.w500),
             ),
             onTap: () {
               context.read<LibraryCubit>().removeSongFromPlaylist(
@@ -380,28 +376,28 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back_rounded, color: Colors.white70),
+                  icon: Icon(Icons.arrow_back_rounded, color: colors.onSurfaceVariant),
                   onPressed: () {
                     setState(() {
                       _showPlaylists = false;
                     });
                   },
                 ),
-                const Text(
+                Text(
                   'Select Playlist',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: colors.onSurface,
                   ),
                 ),
                 const Spacer(),
                 TextButton.icon(
                   onPressed: () => _showCreatePlaylistDialog(context, context.read<LibraryCubit>()),
-                  icon: const Icon(Icons.add, size: 16, color: Color(0xFF8B5CF6)),
+                  icon: const Icon(Icons.add, size: 16),
                   label: const Text(
                     'Create New',
-                    style: TextStyle(color: Color(0xFF8B5CF6), fontSize: 13, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -409,12 +405,12 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
             const SizedBox(height: 10),
 
             if (playlists.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 32.0, horizontal: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16),
                 child: Center(
                   child: Text(
                     'No custom playlists. Create one to add tracks!',
-                    style: TextStyle(color: Colors.white30, fontSize: 14),
+                    style: TextStyle(color: colors.onSurfaceVariant, fontSize: 14),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -433,7 +429,7 @@ class _SongOptionsBottomSheetState extends State<SongOptionsBottomSheet> {
                     return ListTile(
                       leading: Icon(Icons.queue_music_rounded, color: colors.primary),
                       title: Text(pName, style: const TextStyle(fontWeight: FontWeight.w500)),
-                      subtitle: Text('$songCount tracks', style: const TextStyle(fontSize: 12, color: Colors.white30)),
+                      subtitle: Text('$songCount tracks', style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant)),
                       onTap: () {
                         context.read<LibraryCubit>().addSongToPlaylist(pName, widget.song.uri);
                         Navigator.pop(context);

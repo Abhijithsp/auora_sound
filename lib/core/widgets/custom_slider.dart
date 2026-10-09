@@ -19,8 +19,8 @@ class CustomSlider extends StatelessWidget {
       data: theme.sliderTheme.copyWith(
         trackHeight: 6.0,
         activeTrackColor: theme.colorScheme.primary,
-        inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
-        thumbColor: Colors.white,
+        inactiveTrackColor: theme.colorScheme.secondaryContainer,
+        thumbColor: theme.colorScheme.primary,
         overlayColor: theme.colorScheme.primary.withValues(alpha: 0.2),
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),

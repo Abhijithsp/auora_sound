@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'home_page.dart';
@@ -15,10 +14,19 @@ import '../../../player/presentation/bloc/player_cubit.dart';
 import '../../../player/presentation/bloc/player_state.dart';
 import '../../../player/presentation/widgets/mini_player.dart';
 import '../../../player/presentation/pages/now_playing_page.dart';
-import '../../../../core/widgets/glowing_background.dart';
 
 class MainShellPage extends StatefulWidget {
   const MainShellPage({super.key});
+
+  /// Opens the shell's navigation drawer. Tab pages have their own Scaffold,
+  /// so `Scaffold.of(context)` there finds a Scaffold without a drawer.
+  static void openDrawer(BuildContext context) {
+    context
+        .findAncestorStateOfType<_MainShellPageState>()
+        ?._scaffoldKey
+        .currentState
+        ?.openDrawer();
+  }
 
   @override
   State<MainShellPage> createState() => _MainShellPageState();
@@ -100,75 +108,39 @@ class _MainShellPageState extends State<MainShellPage> {
 
         final currentIdx = tabs.indexOf(_currentTab);
 
-        // Sidebar Widget (NavigationDrawer or custom Column)
-        Widget buildSidebar() {
-          return Material(
-            color: colors.surface.withValues(alpha: 0.8),
-            child: Container(
-              width: 250,
-              decoration: BoxDecoration(
-                border: Border(
-                  right: BorderSide(
-                    color: colors.outlineVariant.withValues(alpha: 0.15),
+        void selectTab(String tab) {
+          setState(() {
+            _currentTab = tab;
+          });
+        }
+
+        Widget buildSidebar({required bool inline}) {
+          return NavigationDrawer(
+            elevation: inline ? 0 : null,
+            selectedIndex: currentIdx,
+            onDestinationSelected: (index) {
+              selectTab(tabs[index]);
+              if (!inline) {
+                _scaffoldKey.currentState?.closeDrawer();
+              }
+            },
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(28, 24, 16, 16),
+                child: Text(
+                  'Aura Sound',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: colors.primary,
                   ),
                 ),
               ),
-              child: SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                      child: Text(
-                        'Aura Sound',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: colors.primary,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: tabs.length,
-                        itemBuilder: (context, index) {
-                          final tab = tabs[index];
-                          final isSelected = tab == _currentTab;
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            child: Material(
-                              color: isSelected ? colors.primaryContainer : Colors.transparent,
-                              borderRadius: BorderRadius.circular(28),
-                              clipBehavior: Clip.antiAlias,
-                              child: ListTile(
-                                leading: Icon(
-                                  _getTabIcon(tab),
-                                  color: isSelected ? colors.onPrimaryContainer : colors.onSurfaceVariant,
-                                ),
-                                title: Text(
-                                  tab,
-                                  style: TextStyle(
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    color: isSelected ? colors.onPrimaryContainer : colors.onSurface,
-                                  ),
-                                ),
-                                onTap: () {
-                                  setState(() {
-                                    _currentTab = tab;
-                                  });
-                                  if (!isTablet) {
-                                    Navigator.pop(context);
-                                  }
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+              for (final tab in tabs)
+                NavigationDrawerDestination(
+                  icon: Icon(_getTabIcon(tab)),
+                  label: Text(tab),
                 ),
-              ),
-            ),
+            ],
           );
         }
 
@@ -181,146 +153,91 @@ class _MainShellPageState extends State<MainShellPage> {
 
         return Scaffold(
           key: _scaffoldKey,
-          drawer: isTablet ? null : Drawer(
-            child: buildSidebar(),
-          ),
-          body: GlowingBackground(
-            child: Row(
-              children: [
-                if (isTablet) buildSidebar(),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      // Render Screens preserving scroll/states via IndexedStack
-                      SizedBox.expand(
-                        child: IndexedStack(
-                          index: currentIdx,
-                          children: tabs.map((tab) => _getPage(tab)).toList(),
-                        ),
+          drawer: buildSidebar(inline: false),
+          body: Row(
+            children: [
+              if (isTablet)
+                SizedBox(width: 280, child: buildSidebar(inline: true)),
+              Expanded(
+                child: Stack(
+                  children: [
+                    // Render Screens preserving scroll/states via IndexedStack
+                    SizedBox.expand(
+                      child: IndexedStack(
+                        index: currentIdx,
+                        children: tabs.map((tab) => _getPage(tab)).toList(),
                       ),
-                      
-                      // Floating MiniPlayer capsule
-                      Positioned(
-                        left: 16,
-                        right: 16,
-                        bottom: isTablet ? (MediaQuery.of(context).padding.bottom + 8) : 0,
-                        child: BlocBuilder<PlayerCubit, PlayerState>(
-                          builder: (context, playerState) {
-                            if (playerState.currentTrack != null) {
-                              return MiniPlayer(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    PageRouteBuilder(
-                                      pageBuilder: (context, animation, secondaryAnimation) => BlocProvider.value(
-                                        value: context.read<PlayerCubit>(),
-                                        child: const NowPlayingPage(),
-                                      ),
-                                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                        const begin = Offset(0.0, 1.0);
-                                        const end = Offset.zero;
-                                        const curve = Curves.easeOutCubic;
-                                        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                                        return SlideTransition(
-                                          position: animation.drive(tween),
-                                          child: child,
-                                        );
-                                      },
+                    ),
+
+                    // Floating MiniPlayer capsule
+                    Positioned(
+                      left: 16,
+                      right: 16,
+                      bottom: isTablet ? (MediaQuery.of(context).padding.bottom + 8) : 0,
+                      child: BlocBuilder<PlayerCubit, PlayerState>(
+                        builder: (context, playerState) {
+                          if (playerState.currentTrack != null) {
+                            return MiniPlayer(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder: (context, animation, secondaryAnimation) => BlocProvider.value(
+                                      value: context.read<PlayerCubit>(),
+                                      child: const NowPlayingPage(),
                                     ),
-                                  );
-                                },
-                              );
-                            }
-                            return const SizedBox.shrink();
-                          },
-                        ),
+                                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                      const begin = Offset(0.0, 1.0);
+                                      const end = Offset.zero;
+                                      const curve = Curves.easeOutCubic;
+                                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                                      return SlideTransition(
+                                        position: animation.drive(tween),
+                                        child: child,
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           // Bottom Navigation Bar for Mobile Phones
           bottomNavigationBar: isTablet
               ? null
-              : Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Container(
-                    height: 76,
-                    decoration: BoxDecoration(
-                      color: colors.surface.withValues(alpha: 0.75),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: colors.outlineVariant.withValues(alpha: 0.15),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
+              : SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: bottomBarTabs.map((tab) {
-                            final isMore = tab == 'More';
-                            final isSelected = isMore
-                                ? !isCurrentTabInBottomBar
-                                : (tab == _currentTab);
-
-                            return Expanded(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () {
-                                  if (isMore) {
-                                    _scaffoldKey.currentState?.openDrawer();
-                                  } else {
-                                    setState(() {
-                                      _currentTab = tab;
-                                    });
-                                  }
-                                },
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    AnimatedContainer(
-                                      duration: const Duration(milliseconds: 250),
-                                      curve: Curves.easeOutCubic,
-                                      height: 32,
-                                      width: 60,
-                                      decoration: BoxDecoration(
-                                        color: isSelected ? colors.primaryContainer : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Icon(
-                                        isMore ? Icons.apps_rounded : _getTabIcon(tab),
-                                        color: isSelected ? colors.onPrimaryContainer : colors.onSurfaceVariant.withValues(alpha: 0.8),
-                                        size: 22,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      tab,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: isSelected ? colors.onSurface : colors.onSurfaceVariant.withValues(alpha: 0.7),
-                                        fontSize: 10,
-                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
+                      borderRadius: BorderRadius.circular(28),
+                      child: NavigationBar(
+                        height: 72,
+                        selectedIndex: isCurrentTabInBottomBar
+                            ? bottomBarTabs.indexOf(_currentTab)
+                            : bottomBarTabs.length - 1,
+                        onDestinationSelected: (index) {
+                          final tab = bottomBarTabs[index];
+                          if (tab == 'More') {
+                            _scaffoldKey.currentState?.openDrawer();
+                          } else {
+                            selectTab(tab);
+                          }
+                        },
+                        destinations: [
+                          for (final tab in bottomBarTabs)
+                            NavigationDestination(
+                              icon: Icon(tab == 'More' ? Icons.apps_rounded : _getTabIcon(tab)),
+                              label: tab,
+                            ),
+                        ],
                       ),
                     ),
                   ),

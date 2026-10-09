@@ -6,6 +6,7 @@ import '../bloc/library_state.dart';
 import '../../../player/presentation/bloc/player_cubit.dart';
 import '../../../player/presentation/bloc/player_state.dart';
 import '../widgets/song_tile.dart';
+import 'main_shell_page.dart';
 
 class FavoritesPage extends StatelessWidget {
   const FavoritesPage({super.key});
@@ -49,7 +50,7 @@ class FavoritesPage extends StatelessWidget {
                       builder: (context) {
                         return IconButton(
                           icon: Icon(Icons.menu_rounded, color: colors.onSurface),
-                          onPressed: () => Scaffold.of(context).openDrawer(),
+                          onPressed: () => MainShellPage.openDrawer(context),
                         );
                       },
                     ),

@@ -6,8 +6,7 @@ import 'package:audio_service/audio_service.dart';
 import '../../domain/entities/song.dart';
 import '../../../player/presentation/bloc/player_cubit.dart';
 import '../../../player/presentation/bloc/player_state.dart';
-import '../../../../core/widgets/glowing_background.dart';
-import '../../../../core/widgets/glassmorphic_container.dart';
+import '../../../../core/widgets/surface_card.dart';
 import '../../../../core/widgets/visualizer_widget.dart';
 import '../../../../core/services/locator/service_locator.dart';
 import '../../../../core/services/audio/player_controller.dart';
@@ -217,254 +216,243 @@ class _FolderSongsPageState extends State<FolderSongsPage> {
     final textTheme = theme.textTheme;
 
     return Scaffold(
-      body: GlowingBackground(
-        child: SafeArea(
-          bottom: false,
-          child: Column(
-            children: [
-              AppBar(
-                leading: IconButton(
-                  icon: Icon(_isMultiSelectMode ? Icons.close_rounded : Icons.arrow_back_rounded),
-                  onPressed: () {
-                    if (_isMultiSelectMode) {
-                      _clearSelection();
-                    } else {
-                      Navigator.pop(context);
-                    }
-                  },
-                ),
-                title: Text(
-                  _isMultiSelectMode ? '${_selectedSongs.length} selected' : widget.folderName,
-                  style: theme.appBarTheme.titleTextStyle?.copyWith(color: colors.onSurface),
-                ),
-                actions: [
-                  if (_isMultiSelectMode) ...[
-                    IconButton(
-                      icon: const Icon(Icons.select_all_rounded),
-                      onPressed: () {
-                        setState(() {
-                          if (_selectedSongs.length == widget.songs.length) {
-                            _selectedSongs.clear();
-                            _isMultiSelectMode = false;
-                          } else {
-                            _selectedSongs.addAll(widget.songs);
-                          }
-                        });
-                      },
-                    ),
-                  ] else ...[
-                    IconButton(
-                      icon: const Icon(Icons.playlist_add_check_rounded),
-                      onPressed: () {
-                        setState(() {
-                          _isMultiSelectMode = true;
-                        });
-                      },
-                    ),
-                  ],
-                ],
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            AppBar(
+              leading: IconButton(
+                icon: Icon(_isMultiSelectMode ? Icons.close_rounded : Icons.arrow_back_rounded),
+                onPressed: () {
+                  if (_isMultiSelectMode) {
+                    _clearSelection();
+                  } else {
+                    Navigator.pop(context);
+                  }
+                },
               ),
+              title: Text(
+                _isMultiSelectMode ? '${_selectedSongs.length} selected' : widget.folderName,
+                style: theme.appBarTheme.titleTextStyle?.copyWith(color: colors.onSurface),
+              ),
+              actions: [
+                if (_isMultiSelectMode) ...[
+                  IconButton(
+                    icon: const Icon(Icons.select_all_rounded),
+                    onPressed: () {
+                      setState(() {
+                        if (_selectedSongs.length == widget.songs.length) {
+                          _selectedSongs.clear();
+                          _isMultiSelectMode = false;
+                        } else {
+                          _selectedSongs.addAll(widget.songs);
+                        }
+                      });
+                    },
+                  ),
+                ] else ...[
+                  IconButton(
+                    icon: const Icon(Icons.playlist_add_check_rounded),
+                    onPressed: () {
+                      setState(() {
+                        _isMultiSelectMode = true;
+                      });
+                    },
+                  ),
+                ],
+              ],
+            ),
 
-              Expanded(
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-                        child: GlassmorphicContainer(
-                          borderRadius: BorderRadius.circular(20),
-                          borderOpacity: 0.1,
-                          backgroundOpacity: 0.05,
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  color: colors.primaryContainer.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Icon(Icons.folder_rounded, color: colors.primary, size: 44),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      widget.folderName,
-                                      style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '${widget.songs.length} Tracks • ${_formatTotalDuration(widget.songs)}',
-                                      style: textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  if (widget.songs.isNotEmpty) {
-                                    context.read<PlayerCubit>().playSongItem(widget.songs.first, widget.songs);
-                                  }
-                                },
-                                child: Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: colors.primary,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: colors.primary.withValues(alpha: 0.3),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Icon(Icons.play_arrow_rounded, color: colors.onPrimary, size: 28),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+            Expanded(
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+                      child: SurfaceCard(
+                        borderRadius: BorderRadius.circular(20),
+                        padding: const EdgeInsets.all(16),
                         child: Row(
                           children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: colors.primaryContainer.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Icon(Icons.folder_rounded, color: colors.primary, size: 44),
+                            ),
+                            const SizedBox(width: 16),
                             Expanded(
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: colors.secondaryContainer,
-                                  foregroundColor: colors.onSecondaryContainer,
-                                  elevation: 0,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.folderName,
+                                    style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${widget.songs.length} Tracks • ${_formatTotalDuration(widget.songs)}',
+                                    style: textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                if (widget.songs.isNotEmpty) {
+                                  context.read<PlayerCubit>().playSongItem(widget.songs.first, widget.songs);
+                                }
+                              },
+                              child: Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: colors.primary,
                                 ),
-                                icon: const Icon(Icons.shuffle_rounded),
-                                label: const Text('Shuffle Play', style: TextStyle(fontWeight: FontWeight.bold)),
-                                onPressed: () {
-                                  if (widget.songs.isNotEmpty) {
-                                    final list = List<Song>.from(widget.songs)..shuffle();
-                                    context.read<PlayerCubit>().playSongItem(list.first, list);
-                                  }
-                                },
+                                child: Icon(Icons.play_arrow_rounded, color: colors.onPrimary, size: 28),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
+                  ),
 
-                    SliverPadding(
-                      padding: const EdgeInsets.only(bottom: 140, top: 12),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final song = widget.songs[index];
-                            final isSelected = _selectedSongs.contains(song);
-
-                            return BlocBuilder<PlayerCubit, PlayerState>(
-                              builder: (context, playerState) {
-                                final currentTrack = playerState.currentTrack;
-                                final isActive = currentTrack != null && currentTrack.id == song.uri;
-                                final isPlaying = isActive && playerState.isPlaying;
-
-                                return Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: isSelected 
-                                        ? colors.primary.withValues(alpha: 0.15)
-                                        : (isActive ? colors.surfaceContainer : Colors.transparent),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: isSelected 
-                                        ? Border.all(color: colors.primary.withValues(alpha: 0.4))
-                                        : null,
-                                  ),
-                                  child: ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                    leading: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        if (_isMultiSelectMode)
-                                          Checkbox(
-                                            value: isSelected,
-                                            onChanged: (_) => _toggleSelectSong(song),
-                                            activeColor: colors.primary,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                          ),
-                                        _buildArtwork(context, song, isActive, isPlaying, 48),
-                                      ],
-                                    ),
-                                    title: Text(
-                                      song.title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: textTheme.titleMedium?.copyWith(
-                                        fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
-                                        color: isActive ? colors.primary : colors.onSurface,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      song.artist,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: colors.onSurfaceVariant,
-                                      ),
-                                    ),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          _formatDuration(song.duration),
-                                          style: textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        if (!_isMultiSelectMode)
-                                          IconButton(
-                                            icon: Icon(Icons.more_vert_rounded, color: colors.onSurfaceVariant),
-                                            onPressed: () {
-                                              SongOptionsBottomSheet.show(context, song);
-                                            },
-                                          ),
-                                      ],
-                                    ),
-                                    onLongPress: () => _toggleSelectSong(song),
-                                    onTap: () {
-                                      if (_isMultiSelectMode) {
-                                        _toggleSelectSong(song);
-                                      } else {
-                                        context.read<PlayerCubit>().playSongItem(song, widget.songs);
-                                      }
-                                    },
-                                  ),
-                                );
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: colors.secondaryContainer,
+                                foregroundColor: colors.onSecondaryContainer,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              icon: const Icon(Icons.shuffle_rounded),
+                              label: const Text('Shuffle Play', style: TextStyle(fontWeight: FontWeight.bold)),
+                              onPressed: () {
+                                if (widget.songs.isNotEmpty) {
+                                  final list = List<Song>.from(widget.songs)..shuffle();
+                                  context.read<PlayerCubit>().playSongItem(list.first, list);
+                                }
                               },
-                            );
-                          },
-                          childCount: widget.songs.length,
-                        ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+
+                  SliverPadding(
+                    padding: const EdgeInsets.only(bottom: 140, top: 12),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final song = widget.songs[index];
+                          final isSelected = _selectedSongs.contains(song);
+
+                          return BlocBuilder<PlayerCubit, PlayerState>(
+                            builder: (context, playerState) {
+                              final currentTrack = playerState.currentTrack;
+                              final isActive = currentTrack != null && currentTrack.id == song.uri;
+                              final isPlaying = isActive && playerState.isPlaying;
+
+                              return Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: isSelected 
+                                      ? colors.primary.withValues(alpha: 0.15)
+                                      : (isActive ? colors.surfaceContainer : Colors.transparent),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: isSelected 
+                                      ? Border.all(color: colors.primary.withValues(alpha: 0.4))
+                                      : null,
+                                ),
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  leading: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (_isMultiSelectMode)
+                                        Checkbox(
+                                          value: isSelected,
+                                          onChanged: (_) => _toggleSelectSong(song),
+                                          activeColor: colors.primary,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                        ),
+                                      _buildArtwork(context, song, isActive, isPlaying, 48),
+                                    ],
+                                  ),
+                                  title: Text(
+                                    song.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: textTheme.titleMedium?.copyWith(
+                                      fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
+                                      color: isActive ? colors.primary : colors.onSurface,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    song.artist,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: colors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        _formatDuration(song.duration),
+                                        style: textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      if (!_isMultiSelectMode)
+                                        IconButton(
+                                          icon: Icon(Icons.more_vert_rounded, color: colors.onSurfaceVariant),
+                                          onPressed: () {
+                                            SongOptionsBottomSheet.show(context, song);
+                                          },
+                                        ),
+                                    ],
+                                  ),
+                                  onLongPress: () => _toggleSelectSong(song),
+                                  onTap: () {
+                                    if (_isMultiSelectMode) {
+                                      _toggleSelectSong(song);
+                                    } else {
+                                      context.read<PlayerCubit>().playSongItem(song, widget.songs);
+                                    }
+                                  },
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        childCount: widget.songs.length,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: _isMultiSelectMode

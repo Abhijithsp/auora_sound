@@ -57,24 +57,17 @@ class PlayerControls extends StatelessWidget {
               onPressed: () => playerCubit.previous(),
             ),
 
-            // Play / Pause Glass Orb Button
+            // Play / Pause button: morphs from circle to rounded square while playing
             GestureDetector(
               onTap: () => playerCubit.togglePlay(),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutBack,
                 height: 80,
                 width: 80,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
                   color: colors.primary,
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.primary.withValues(alpha: 0.4),
-                      blurRadius: state.isPlaying ? 20 : 12,
-                      spreadRadius: state.isPlaying ? 2 : 0,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(state.isPlaying ? 24 : 40),
                 ),
                 child: Center(
                   child: AnimatedSwitcher(

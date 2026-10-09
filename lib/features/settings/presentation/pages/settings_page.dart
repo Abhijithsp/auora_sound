@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/widgets/glassmorphic_container.dart';
+import '../../../../core/widgets/surface_card.dart';
 import '../../../../core/theme/theme_presets.dart';
 import '../bloc/settings_cubit.dart';
 import '../bloc/settings_state.dart';
 import '../../../music_library/presentation/bloc/library_cubit.dart';
 import '../../../music_library/presentation/bloc/library_state.dart';
+import '../../../music_library/presentation/pages/main_shell_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -50,7 +51,7 @@ class SettingsPage extends StatelessWidget {
                   builder: (context) {
                     return IconButton(
                       icon: const Icon(Icons.menu_rounded),
-                      onPressed: () => Scaffold.of(context).openDrawer(),
+                      onPressed: () => MainShellPage.openDrawer(context),
                     );
                   },
                 ),
@@ -73,11 +74,9 @@ class SettingsPage extends StatelessWidget {
                   // Theme Mode Selector
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                    child: GlassmorphicContainer(
+                    child: SurfaceCard(
                       borderRadius: BorderRadius.circular(16),
                       padding: const EdgeInsets.all(16),
-                      borderOpacity: 0.08,
-                      backgroundOpacity: 0.04,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -129,11 +128,9 @@ class SettingsPage extends StatelessWidget {
                   // Layout & Startup Settings
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                    child: GlassmorphicContainer(
+                    child: SurfaceCard(
                       borderRadius: BorderRadius.circular(16),
                       padding: const EdgeInsets.all(16),
-                      borderOpacity: 0.08,
-                      backgroundOpacity: 0.04,
                       child: Column(
                         children: [
                           ListTile(
@@ -182,11 +179,9 @@ class SettingsPage extends StatelessWidget {
 
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                    child: GlassmorphicContainer(
+                    child: SurfaceCard(
                       borderRadius: BorderRadius.circular(16),
                       padding: const EdgeInsets.all(16),
-                      borderOpacity: 0.08,
-                      backgroundOpacity: 0.04,
                       child: Column(
                         children: [
                           BlocBuilder<LibraryCubit, LibraryState>(
@@ -287,11 +282,9 @@ class SettingsPage extends StatelessWidget {
 
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    child: GlassmorphicContainer(
+                    child: SurfaceCard(
                       borderRadius: BorderRadius.circular(16),
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      borderOpacity: 0.08,
-                      backgroundOpacity: 0.04,
                       child: ReorderableListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -515,11 +508,9 @@ class SettingsPage extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-      child: GlassmorphicContainer(
+      child: SurfaceCard(
         borderRadius: BorderRadius.circular(16),
         padding: const EdgeInsets.all(16),
-        borderOpacity: 0.08,
-        backgroundOpacity: 0.04,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -559,10 +550,10 @@ class SettingsPage extends StatelessWidget {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isSelected ? colors.primaryContainer.withValues(alpha: 0.25) : colors.surfaceContainerLow.withValues(alpha: 0.5),
+                      color: isSelected ? colors.primaryContainer : colors.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isSelected ? colors.primary : colors.outlineVariant.withValues(alpha: 0.15),
+                        color: isSelected ? colors.primary : Colors.transparent,
                         width: isSelected ? 2.0 : 1.0,
                       ),
                     ),
@@ -638,11 +629,8 @@ class SettingsPage extends StatelessWidget {
                 
                 return Container(
                   decoration: BoxDecoration(
-                    color: colors.surfaceContainerHigh.withValues(alpha: 0.95),
+                    color: colors.surfaceContainerLow,
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                    border: Border(
-                      top: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.2)),
-                    ),
                   ),
                   child: Column(
                     children: [

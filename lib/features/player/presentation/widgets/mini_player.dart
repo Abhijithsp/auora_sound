@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/widgets/glassmorphic_container.dart';
+import '../../../../core/widgets/surface_card.dart';
 import '../bloc/player_cubit.dart';
 import '../bloc/player_state.dart';
 
@@ -105,11 +105,9 @@ class MiniPlayer extends StatelessWidget {
           onTap: onTap,
           child: Container(
             margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-            child: GlassmorphicContainer(
-              borderRadius: BorderRadius.circular(16),
-              blur: 25.0,
-              borderOpacity: 0.1,
-              backgroundOpacity: 0.12,
+            child: SurfaceCard(
+              color: theme.colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(24),
               padding: EdgeInsets.zero,
               child: Stack(
                 children: [
@@ -134,7 +132,7 @@ class MiniPlayer extends StatelessWidget {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14.0,
-                                  color: theme.colorScheme.onSurface,
+                                  color: theme.colorScheme.onSecondaryContainer,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -143,7 +141,7 @@ class MiniPlayer extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                  color: theme.colorScheme.onSecondaryContainer.withValues(alpha: 0.75),
                                   fontSize: 11.0,
                                 ),
                               ),
@@ -154,7 +152,7 @@ class MiniPlayer extends StatelessWidget {
                         IconButton(
                           icon: Icon(
                             Icons.skip_previous_rounded,
-                            color: theme.colorScheme.onSurfaceVariant,
+                            color: theme.colorScheme.onSecondaryContainer,
                             size: 24,
                           ),
                           onPressed: () => playerCubit.previous(),
@@ -169,13 +167,6 @@ class MiniPlayer extends StatelessWidget {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: theme.colorScheme.primary,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                )
-                              ],
                             ),
                             child: Icon(
                               state.isPlaying
@@ -190,7 +181,7 @@ class MiniPlayer extends StatelessWidget {
                         IconButton(
                           icon: Icon(
                             Icons.skip_next_rounded,
-                            color: theme.colorScheme.onSurfaceVariant,
+                            color: theme.colorScheme.onSecondaryContainer,
                             size: 24,
                           ),
                           onPressed: () => playerCubit.next(),
@@ -215,7 +206,7 @@ class MiniPlayer extends StatelessWidget {
 
                           return Container(
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.2),
+                              color: theme.colorScheme.onSecondaryContainer.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(1),
                             ),
                             child: Align(

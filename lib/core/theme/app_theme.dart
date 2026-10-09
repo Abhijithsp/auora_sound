@@ -10,116 +10,108 @@ class AppTheme {
     return generateTheme(AppThemePresets.presets[0], false);
   }
 
-  static ThemeData generateTheme(AppThemePreset preset, bool isDark) {
-    final isInkWash = preset.name == 'Ink Wash';
-    
-    // Invert primary and accent for ink wash in dark mode for high-contrast visibility
-    final primaryColor = isInkWash
-        ? (isDark ? preset.accent : preset.primary)
-        : preset.primary;
-    final secondaryColor = preset.secondary;
-    final accentColor = isInkWash
-        ? (isDark ? preset.primary : preset.secondary)
-        : preset.accent;
-        
-    final surfaceColor = isDark ? preset.backgroundDark : preset.backgroundLight;
-    final cardColor = isDark ? preset.cardDark : preset.cardLight;
-
-    // Lighter surfaces for elevated containers (M3 containers)
-    final double cardBrightnessOffset = isDark ? 0.05 : -0.04;
-    Color adjustColorBrightness(Color base, double factor) {
-      final hsv = HSVColor.fromColor(base);
-      final double newV = (hsv.value + factor).clamp(0.0, 1.0);
-      return hsv.withValue(newV).toColor();
+  /// Picks how the tonal palette is derived from the preset's seed colour.
+  /// Coloured presets get a vibrant scheme; the greyscale ones stay neutral.
+  static DynamicSchemeVariant _variantFor(AppThemePreset preset) {
+    switch (preset.name) {
+      case 'Ink Wash':
+        return DynamicSchemeVariant.monochrome;
+      case 'Monochrome Slate':
+        return DynamicSchemeVariant.neutral;
+      default:
+        return DynamicSchemeVariant.vibrant;
     }
-    
-    final containerHigh = adjustColorBrightness(cardColor, cardBrightnessOffset);
-    final containerHighest = adjustColorBrightness(cardColor, cardBrightnessOffset * 2);
+  }
 
-    // Custom ink wash surface configurations
-    final onSurfaceColor = isInkWash
-        ? (isDark ? const Color(0xFFFFFDF5) : const Color(0xFF1E1E22))
-        : (isDark ? const Color(0xFFE5E1E4) : const Color(0xFF1C1B1F));
-
-    final onSurfaceVariantColor = isInkWash
-        ? const Color(0xFF8E8E98)
-        : (isDark ? const Color(0xFFCAC3D8) : const Color(0xFF49454F));
-
-    final onPrimaryColor = isInkWash
-        ? (isDark ? const Color(0xFF1E1E22) : const Color(0xFFFFFDF5))
-        : (isDark ? Colors.black : Colors.white);
-
-    final outlineColor = isInkWash
-        ? const Color(0xFF8E8E98)
-        : (isDark ? const Color(0xFF948EA1) : const Color(0xFF79747E));
-
-    final outlineVariantColor = isInkWash
-        ? (isDark ? const Color(0xFF2C2C32) : const Color(0xFFE5E5EA))
-        : (isDark ? const Color(0xFF494455) : const Color(0xFFCAC4D0));
-
-    final colorScheme = isDark
-        ? ColorScheme.dark(
-            primary: primaryColor,
-            primaryContainer: primaryColor.withValues(alpha: 0.25),
-            secondary: secondaryColor,
-            secondaryContainer: secondaryColor.withValues(alpha: 0.15),
-            tertiary: accentColor,
-            tertiaryContainer: accentColor.withValues(alpha: 0.2),
-            surface: surfaceColor,
-            surfaceContainer: cardColor,
-            surfaceContainerHigh: containerHigh,
-            surfaceContainerHighest: containerHighest,
-            onPrimary: onPrimaryColor,
-            onSecondary: Colors.white,
-            onSurface: onSurfaceColor,
-            onSurfaceVariant: onSurfaceVariantColor,
-            outline: outlineColor,
-            outlineVariant: outlineVariantColor,
-          )
-        : ColorScheme.light(
-            primary: primaryColor,
-            primaryContainer: primaryColor.withValues(alpha: 0.15),
-            secondary: secondaryColor,
-            secondaryContainer: secondaryColor.withValues(alpha: 0.1),
-            tertiary: accentColor,
-            tertiaryContainer: accentColor.withValues(alpha: 0.15),
-            surface: surfaceColor,
-            surfaceContainer: cardColor,
-            surfaceContainerHigh: containerHigh,
-            surfaceContainerHighest: containerHighest,
-            onPrimary: onPrimaryColor,
-            onSecondary: Colors.white,
-            onSurface: onSurfaceColor,
-            onSurfaceVariant: onSurfaceVariantColor,
-            outline: outlineColor,
-            outlineVariant: outlineVariantColor,
-          );
-
-    return ThemeData(
-      useMaterial3: true,
+  static ThemeData generateTheme(AppThemePreset preset, bool isDark) {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: preset.primary,
       brightness: isDark ? Brightness.dark : Brightness.light,
-      scaffoldBackgroundColor: Colors.transparent, // Allow glowing/scaffold background to show through
-      primaryColor: primaryColor,
+      dynamicSchemeVariant: _variantFor(preset),
+    );
+
+    final base = ThemeData(
+      useMaterial3: true,
       colorScheme: colorScheme,
+    );
+    final textTheme = base.textTheme.copyWith(
+      displaySmall: base.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w800),
+      headlineLarge: base.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w800),
+      headlineMedium: base.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+      headlineSmall: base.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+      titleLarge: base.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+      titleMedium: base.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+    );
+
+    return base.copyWith(
+      scaffoldBackgroundColor: colorScheme.surface,
+      primaryColor: colorScheme.primary,
+      textTheme: textTheme,
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: true,
         iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
         titleTextStyle: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
+          fontSize: 22,
+          fontWeight: FontWeight.w800,
           color: colorScheme.onSurface,
           fontFamily: 'Inter',
         ),
       ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        color: colorScheme.surfaceContainerHigh,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        clipBehavior: Clip.antiAlias,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: colorScheme.surfaceContainer,
+        indicatorColor: colorScheme.secondaryContainer,
+        elevation: 0,
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => TextStyle(
+            fontSize: 12,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w700
+                : FontWeight.w500,
+          ),
+        ),
+      ),
+      navigationDrawerTheme: NavigationDrawerThemeData(
+        backgroundColor: colorScheme.surfaceContainerLow,
+        indicatorColor: colorScheme.secondaryContainer,
+        indicatorShape: const StadiumBorder(),
+        tileHeight: 56,
+      ),
+      drawerTheme: DrawerThemeData(
+        backgroundColor: colorScheme.surfaceContainerLow,
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: colorScheme.surfaceContainerLow,
+        modalBackgroundColor: colorScheme.surfaceContainerLow,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+      ),
       sliderTheme: SliderThemeData(
-        activeTrackColor: primaryColor,
-        inactiveTrackColor: colorScheme.outlineVariant,
-        thumbColor: primaryColor,
-        trackHeight: 4.0,
+        activeTrackColor: colorScheme.primary,
+        inactiveTrackColor: colorScheme.secondaryContainer,
+        thumbColor: colorScheme.primary,
+        trackHeight: 6.0,
       ),
     );
   }
 }
-

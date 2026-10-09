@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/widgets/glassmorphic_container.dart';
+import '../../../../core/widgets/surface_card.dart';
 import '../bloc/library_cubit.dart';
 import '../bloc/library_state.dart';
 import 'playlist_detail_page.dart';
+import 'main_shell_page.dart';
 
 class PlaylistsPage extends StatefulWidget {
   const PlaylistsPage({super.key});
@@ -144,7 +145,7 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                   builder: (context) {
                     return IconButton(
                       icon: const Icon(Icons.menu_rounded),
-                      onPressed: () => Scaffold.of(context).openDrawer(),
+                      onPressed: () => MainShellPage.openDrawer(context),
                     );
                   },
                 ),
@@ -239,10 +240,8 @@ class _PlaylistsPageState extends State<PlaylistsPage> {
                             );
                           },
                           onLongPress: () => _showDeletePlaylistDialog(context, libraryCubit, playlistName),
-                          child: GlassmorphicContainer(
+                          child: SurfaceCard(
                             borderRadius: BorderRadius.circular(20),
-                            borderOpacity: 0.08,
-                            backgroundOpacity: 0.04,
                             padding: const EdgeInsets.all(12),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

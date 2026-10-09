@@ -11,6 +11,7 @@ import '../../../settings/presentation/bloc/settings_cubit.dart';
 import '../../../settings/presentation/bloc/settings_state.dart';
 import '../widgets/song_tile.dart';
 import '../../../../core/widgets/visualizer_widget.dart';
+import 'main_shell_page.dart';
 
 class SongsPage extends StatefulWidget {
   const SongsPage({super.key});
@@ -199,7 +200,7 @@ class _SongsPageState extends State<SongsPage> {
                       builder: (context) {
                         return IconButton(
                           icon: const Icon(Icons.menu_rounded),
-                          onPressed: () => Scaffold.of(context).openDrawer(),
+                          onPressed: () => MainShellPage.openDrawer(context),
                         );
                       },
                     ),

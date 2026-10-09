@@ -157,27 +157,12 @@ class _ArtworkWidgetState extends State<ArtworkWidget> with SingleTickerProvider
     final trackTitle = widget.track?.title ?? 'Octave';
     final colors = _getDeterministicColors(trackTitle);
     final glowColor = colors[0];
+    final scheme = Theme.of(context).colorScheme;
 
     return Center(
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Dynamic Glowing Shadow behind the cover art
-          Container(
-            height: widget.size * 0.95,
-            width: widget.size * 0.95,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: glowColor.withValues(alpha: widget.isPlaying ? 0.45 : 0.25),
-                  blurRadius: widget.isPlaying ? 45 : 30,
-                  spreadRadius: widget.isPlaying ? 8 : 2,
-                ),
-              ],
-            ),
-          ),
-          
           // Rotating Outer Halo Ring
           RotationTransition(
             turns: _rotationController,
@@ -187,7 +172,7 @@ class _ArtworkWidgetState extends State<ArtworkWidget> with SingleTickerProvider
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: scheme.outlineVariant,
                   width: 1.5,
                 ),
               ),
@@ -202,13 +187,6 @@ class _ArtworkWidgetState extends State<ArtworkWidget> with SingleTickerProvider
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: glowColor,
-                        boxShadow: [
-                          BoxShadow(
-                            color: glowColor,
-                            blurRadius: 6,
-                            spreadRadius: 2,
-                          ),
-                        ],
                       ),
                     ),
                   ),
@@ -224,7 +202,7 @@ class _ArtworkWidgetState extends State<ArtworkWidget> with SingleTickerProvider
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.15),
+                color: scheme.surfaceContainerHighest,
                 width: 3.0,
               ),
             ),

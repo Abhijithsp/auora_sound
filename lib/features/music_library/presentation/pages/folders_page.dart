@@ -3,8 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/song.dart';
 import '../bloc/library_cubit.dart';
 import '../bloc/library_state.dart';
-import '../../../../core/widgets/glassmorphic_container.dart';
+import '../../../../core/widgets/surface_card.dart';
 import 'folder_songs_page.dart';
+import 'main_shell_page.dart';
 
 class FoldersPage extends StatefulWidget {
   const FoldersPage({super.key});
@@ -83,7 +84,7 @@ class _FoldersPageState extends State<FoldersPage> {
                   builder: (context) {
                     return IconButton(
                       icon: const Icon(Icons.menu_rounded),
-                      onPressed: () => Scaffold.of(context).openDrawer(),
+                      onPressed: () => MainShellPage.openDrawer(context),
                     );
                   },
                 ),
@@ -163,11 +164,9 @@ class _FoldersPageState extends State<FoldersPage> {
 
                         return Container(
                           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                          child: GlassmorphicContainer(
+                          child: SurfaceCard(
                             borderRadius: BorderRadius.circular(16),
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            borderOpacity: 0.08,
-                            backgroundOpacity: 0.04,
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
                               leading: Container(
