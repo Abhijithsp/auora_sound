@@ -1,4 +1,4 @@
-# Aura Sound (Beta)
+# Aura Sound
 
 A sleek, premium, and feature-rich local music player application built with Flutter, designed exclusively for iOS and Android. It scans, indexes, and plays local audio files with a modern UI and full background playback controls.
 
@@ -14,18 +14,14 @@ A sleek, premium, and feature-rich local music player application built with Flu
 
 ### 🎵 Core Experience
 <p align="center">
-  <img src="screenshots/1000164504.png" width="30%" alt="Home Screen" />
-  <img src="screenshots/1000164515.png" width="30%" alt="Folder Listing" />
+  <img src="screenshots/Screenshot_20261010-102238.png" width="30%" alt="Home Screen" />
+    <img src="screenshots/Screenshot_20261010-102320.png" width="30%" alt="Home Screen Frosted Glass"/>
+  <img src="screenshots/Screenshot_20261010-102200.png" width="30%" alt="Folder Listing" />
+ 
    
   
  </p>
 
- ### 🎉 Playlist& Search
-<p align="center">
-  <img src="screenshots/1000164516.png" width="30%" alt="playlist" />
-  <img src="screenshots/1000164510.png" width="30%" alt="Playlist Lsiting" />
- <img src="screenshots/1000164517.png" width="30%" alt="Search" />
-</p>
 
 ### 🎧 Now Playing & Queue
 <p align="center">
@@ -36,8 +32,10 @@ A sleek, premium, and feature-rich local music player application built with Flu
 
 ### 🎨 Settings & Customization
 <p align="center">
-  <img src="screenshots/1000164511.png" width="30%" alt="Theme Presets" />
-  <img src="screenshots/1000164513.png" width="30%" alt="Tab Management" />
+  <img src="screenshots/Screenshot_20261010-102248.png" width="30%" alt="Settings Themes" />
+  <img src="screenshots/Screenshot_20261010-102253.png" width="30%" alt="Settings" />
+  <img src="screenshots/Screenshot_20261010-102305.png" width="30%" alt="Settings 2" />
+    
 </p>
 
 
@@ -70,6 +68,7 @@ A sleek, premium, and feature-rich local music player application built with Flu
 
 ### ⚙️ UX & System Details
 - **Material 3 Design:** A modern, clean, and responsive user interface.
+- **Frosted Glass Effect:** A modern, clean, and responsive user interface with blur effects.
 - **Permission Handler:** Streamlined permission request flows for storage access.
 - **Persistent State:** Preferences, favorites, history, etc. are saved locally.
 
